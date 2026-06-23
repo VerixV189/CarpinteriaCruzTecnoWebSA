@@ -1,0 +1,124 @@
+<script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { RefreshCw } from 'lucide-vue-next';
+
+interface Rol {
+    id: number;
+    nombre: string;
+}
+
+interface Usuario {
+    id: number;
+    nombre: string;
+    apellido: string;
+    email: string;
+    telefono: string | null;
+    estado: string;
+    rol: Rol | null;
+}
+
+const props = defineProps<{
+    usuarios: Usuario[];
+}>();
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Usuarios', href: '/usuarios' },
+];
+
+const searchQuery = ref('');
+
+const isRefreshing = ref(false);
+const refreshPage = () => {
+    isRefreshing.value = true;
+    router.reload({
+        onFinish: () => {
+            isRefreshing.value = false;
+        }
+    });
+};
+
+const filteredUsuarios = computed(() => {
+    return props.usuarios.filter((u) => {
+        const name = `${u.nombre} ${u.apellido}`.toLowerCase();
+        const email = u.email.toLowerCase();
+        const role = (u.rol?.nombre || '').toLowerCase();
+        const query = searchQuery.value.toLowerCase();
+        return name.includes(query) || email.includes(query) || role.includes(query);
+    });
+});
+</script>
+
+<template>
+    <Head title="Usuarios" />
+
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="p-6 w-full space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
+                    <p class="text-sm text-muted-foreground">Listado de usuarios registrados en la plataforma.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 py-4">
+                <input
+                    v-model="searchQuery"
+                    type="text"
+                    placeholder="Buscar por nombre, email o rol..."
+                    class="flex h-9 w-full max-w-sm rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+                <button
+                    @click="refreshPage"
+                    :disabled="isRefreshing"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-background px-3 h-9 text-xs font-medium text-stone-600 dark:text-stone-300 shadow-sm transition-colors hover:bg-stone-50 hover:text-stone-900 dark:hover:bg-stone-850 dark:hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                    title="Refrescar datos"
+                >
+                    <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
+                    <span>Refrescar</span>
+                </button>
+            </div>
+
+            <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
+                <div class="relative w-full overflow-auto">
+                    <table class="w-full caption-bottom text-sm">
+                        <thead class="border-b border-sidebar-border bg-muted/50">
+                            <tr class="text-left font-medium text-muted-foreground">
+                                <th class="p-4">Nombre Completo</th>
+                                <th class="p-4">Email</th>
+                                <th class="p-4">Teléfono</th>
+                                <th class="p-4">Rol</th>
+                                <th class="p-4">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sidebar-border">
+                            <tr v-if="filteredUsuarios.length === 0">
+                                <td colspan="5" class="p-4 text-center text-muted-foreground">
+                                    No se encontraron usuarios.
+                                </td>
+                            </tr>
+                            <tr v-for="usuario in filteredUsuarios" :key="usuario.id" class="hover:bg-muted/50 transition-colors">
+                                <td class="p-4 font-medium">{{ usuario.nombre }} {{ usuario.apellido }}</td>
+                                <td class="p-4">{{ usuario.email }}</td>
+                                <td class="p-4">{{ usuario.telefono || '-' }}</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                                        {{ usuario.rol?.nombre || 'Sin Rol' }}
+                                    </span>
+                                </td>
+                                <td class="p-4">
+                                    <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${usuario.estado === 'activo' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'}`">
+                                        {{ usuario.estado }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </AppLayout>
+</template>

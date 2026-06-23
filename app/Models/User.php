@@ -16,6 +16,8 @@ class User extends Authenticatable
 
     protected $table = 'usuarios';
 
+    protected $appends = ['name'];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -52,6 +54,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getNameAttribute()
+    {
+        return trim("{$this->nombre} {$this->apellido}");
     }
 
     public function rol()
