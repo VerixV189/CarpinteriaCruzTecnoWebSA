@@ -22,4 +22,9 @@ class Cliente extends Model
     {
         return $this->hasMany(Cotizacion::class, 'cliente_id');
     }
+
+    public function carrito()
+    {
+        return $this->hasOne(Carrito::class, 'cliente_id');
+    }
 }

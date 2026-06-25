@@ -13,7 +13,7 @@ class VentaController extends Controller
     public function index()
     {
         return Inertia::render('Ventas/Index', [
-            'ventas' => Venta::with('pedido.cotizacion.cliente.usuario')->get()
+            'ventas' => Venta::with(['pedido.cotizacion.cliente.usuario', 'pagos'])->latest()->get()
         ]);
     }
 

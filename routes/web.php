@@ -39,6 +39,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('pedidos', App\Http\Controllers\PedidoController::class);
     Route::resource('ventas', App\Http\Controllers\VentaController::class);
     
+    // Marketplace / Carrito
+    Route::get('marketplace', [App\Http\Controllers\MarketplaceController::class, 'index'])->name('marketplace.index');
+    Route::get('carrito', [App\Http\Controllers\MarketplaceController::class, 'cart'])->name('marketplace.cart');
+    Route::post('carrito/agregar', [App\Http\Controllers\MarketplaceController::class, 'addToCart'])->name('marketplace.addToCart');
+    Route::put('carrito/actualizar/{detalle}', [App\Http\Controllers\MarketplaceController::class, 'updateCart'])->name('marketplace.updateCart');
+    Route::delete('carrito/eliminar/{detalle}', [App\Http\Controllers\MarketplaceController::class, 'removeFromCart'])->name('marketplace.removeFromCart');
+    Route::post('carrito/checkout', [App\Http\Controllers\MarketplaceController::class, 'checkout'])->name('marketplace.checkout');
+
     // Rutas personalizadas de Pagos
     Route::put('pagos/{pago}/efectivo', [App\Http\Controllers\PagoController::class, 'marcarEfectivo'])->name('pagos.efectivo');
     Route::post('pagos/{pago}/pagofacil', [App\Http\Controllers\PagoController::class, 'iniciarPagoFacil'])->name('pagos.pagofacil');

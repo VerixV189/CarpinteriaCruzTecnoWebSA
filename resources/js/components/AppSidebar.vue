@@ -22,7 +22,8 @@ import {
     History,
     ChevronsUpDown,
     Eye,
-    ShieldCheck
+    ShieldCheck,
+    Store
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { usePage } from '@inertiajs/vue3';
@@ -38,6 +39,11 @@ import {
 const page = usePage<any>();
 
 const negociosItems: NavItem[] = [
+    {
+        title: 'Marketplace',
+        href: '/marketplace',
+        icon: Store,
+    },
     {
         title: 'Dashboard',
         href: '/dashboard',
