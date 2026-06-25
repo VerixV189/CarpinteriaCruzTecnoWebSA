@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 use App\Models\Cliente;
@@ -11,9 +12,31 @@ use Inertia\Inertia;
 
 class ClienteController extends Controller
 {
+        private function verificarPermiso($nombrePermiso)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->rol) {
+            abort(403, 'No tienes un rol asignado.');
+        }
+
+        // Si el rol_id 1 es Propietario, le damos acceso total siempre
+        if ($user->rol_id === 1) {
+            return true;
+        }
+
+        // Verificamos si en la tabla pivote este rol tiene el permiso solicitado
+        $tienePermiso = $user->rol->permisos->contains('nombre', $nombrePermiso);
+        if (!$tienePermiso) {
+            abort(403, 'Acceso Denegado: No tienes el permiso necesario (' . $nombrePermiso . ').');
+        }
+    }
+
     public function index()
     {
-        $clientes = Cliente::with('usuario')->get();
+        $this->verificarPermiso('LISCLI');
+
+        $clientes = Cliente::with('usuario')->paginate(10);
+
         return Inertia::render('Clientes/Index', [
             'clientes' => $clientes
         ]);
@@ -21,11 +44,15 @@ class ClienteController extends Controller
 
     public function create()
     {
+        $this->verificarPermiso('REGCLI');
+
         return Inertia::render('Clientes/Create');
     }
 
     public function store(Request $request)
     {
+        $this->verificarPermiso('REGCLI');
+
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
@@ -55,6 +82,8 @@ class ClienteController extends Controller
 
     public function edit(Cliente $cliente)
     {
+        $this->verificarPermiso('ACTCLI');
+
         return Inertia::render('Clientes/Edit', [
             'cliente' => $cliente->load('usuario')
         ]);
@@ -62,6 +91,8 @@ class ClienteController extends Controller
 
     public function update(Request $request, Cliente $cliente)
     {
+        $this->verificarPermiso('ACTCLI');
+
         $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
@@ -90,6 +121,8 @@ class ClienteController extends Controller
 
     public function destroy(Cliente $cliente)
     {
+        $this->verificarPermiso('ELIMCLI');
+
         $cliente->usuario->delete();
         return redirect()->route('clientes.index')->with('success', 'Cliente eliminado con éxito.');
     }

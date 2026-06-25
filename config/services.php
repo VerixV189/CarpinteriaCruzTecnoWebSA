@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'pagofacil' => [
+        'commerce_id' => env('PAGOFACIL_COMMERCE_ID'),
+        'token_service' => env('PAGOFACIL_TOKEN_SERVICE'),
+        'secret_token' => env('PAGOFACIL_SECRET_TOKEN'),
+    ],
+
 ];

@@ -22,7 +22,12 @@ interface Cliente {
 }
 
 const props = defineProps<{
-    clientes: Cliente[];
+    clientes: {
+        data: Cliente[];
+        links: any[];
+        current_page: number;
+        last_page: number;
+    };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -49,7 +54,7 @@ const refreshPage = () => {
 };
 
 const filteredClientes = computed(() => {
-    return props.clientes.filter((cliente) => {
+    return props.clientes.data.filter((cliente) => {
         const fullName = `${cliente.usuario.nombre} ${cliente.usuario.apellido}`.toLowerCase();
         const email = cliente.usuario.email.toLowerCase();
         const nit = cliente.nit_facturacion.toLowerCase();
@@ -147,6 +152,28 @@ const deleteCliente = (id: number) => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Paginación -->
+                <div class="p-4 flex items-center justify-between border-t border-sidebar-border" v-if="clientes.links && clientes.links.length > 3">
+                    <div class="flex flex-wrap gap-1">
+                        <template v-for="(link, key) in clientes.links" :key="key">
+                            <Link
+                                v-if="link.url"
+                                :href="link.url"
+                                class="px-3 py-1 text-sm rounded-md border"
+                                :class="link.active ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-transparent hover:bg-zinc-100 text-zinc-600 border-zinc-200 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-800'"
+                                preserve-scroll
+                            >
+                                <span v-html="link.label"></span>
+                            </Link>
+                            <span
+                                v-else
+                                class="px-3 py-1 text-sm rounded-md border border-zinc-200 text-zinc-400 opacity-50 dark:border-zinc-800 dark:text-zinc-600"
+                                v-html="link.label"
+                            ></span>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>

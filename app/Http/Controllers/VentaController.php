@@ -16,4 +16,9 @@ class VentaController extends Controller
             'ventas' => Venta::with('pedido.cotizacion.cliente.usuario')->get()
         ]);
     }
+
+    public function store(Request $request)
+    {
+        
+    }
 }

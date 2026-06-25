@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 
@@ -21,7 +21,12 @@ interface Usuario {
 }
 
 const props = defineProps<{
-    usuarios: Usuario[];
+    usuarios: {
+        data: Usuario[];
+        links: any[];
+        current_page: number;
+        last_page: number;
+    };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -42,7 +47,7 @@ const refreshPage = () => {
 };
 
 const filteredUsuarios = computed(() => {
-    return props.usuarios.filter((u) => {
+    return props.usuarios.data.filter((u) => {
         const name = `${u.nombre} ${u.apellido}`.toLowerCase();
         const email = u.email.toLowerCase();
         const role = (u.rol?.nombre || '').toLowerCase();
@@ -62,6 +67,9 @@ const filteredUsuarios = computed(() => {
                     <h1 class="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
                     <p class="text-sm text-muted-foreground">Listado de usuarios registrados en la plataforma.</p>
                 </div>
+                <Link href="/usuarios/create" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors">
+                    Crear Usuario
+                </Link>
             </div>
 
             <div class="flex items-center gap-2 py-4">
@@ -117,6 +125,28 @@ const filteredUsuarios = computed(() => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                
+                <!-- Paginación -->
+                <div class="p-4 flex items-center justify-between border-t border-sidebar-border" v-if="usuarios.links.length > 3">
+                    <div class="flex flex-wrap gap-1">
+                        <template v-for="(link, key) in usuarios.links" :key="key">
+                            <Link
+                                v-if="link.url"
+                                :href="link.url"
+                                class="px-3 py-1 text-sm rounded-md border"
+                                :class="link.active ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-transparent hover:bg-zinc-100 text-zinc-600 border-zinc-200 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-800'"
+                                preserve-scroll
+                            >
+                                <span v-html="link.label"></span>
+                            </Link>
+                            <span
+                                v-else
+                                class="px-3 py-1 text-sm rounded-md border border-zinc-200 text-zinc-400 opacity-50 dark:border-zinc-800 dark:text-zinc-600"
+                                v-html="link.label"
+                            ></span>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>

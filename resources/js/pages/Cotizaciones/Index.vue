@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 
 interface Usuario {
+    id: number;
     nombre: string;
     apellido: string;
 }
@@ -18,18 +19,35 @@ interface Carpintero {
     usuario: Usuario;
 }
 
+interface DetalleCotizacion {
+    precio: string;
+}
+
 interface Cotizacion {
     id: number;
     descripcion: string;
-    costo_total: string;
     estado: string;
     cliente: Cliente;
-    carpintero: Carpintero;
+    carpintero?: Carpintero | null;
+    detalle_cotizaciones?: DetalleCotizacion[];
 }
 
 const props = defineProps<{
-    cotizaciones: Cotizacion[];
+    cotizaciones: {
+        data: Cotizacion[];
+        links: any[];
+        current_page: number;
+        last_page: number;
+    };
 }>();
+
+const page = usePage();
+const currentUserRole = computed(() => page.props.auth.user.rol_id);
+
+const calcularTotal = (cotizacion: Cotizacion) => {
+    if (!cotizacion.detalle_cotizaciones) return 0;
+    return cotizacion.detalle_cotizaciones.reduce((total, detalle) => total + parseFloat(detalle.precio), 0);
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -49,10 +67,10 @@ const refreshPage = () => {
 };
 
 const filteredCotizaciones = computed(() => {
-    return props.cotizaciones.filter((c) => {
-        const client = `${c.cliente.usuario.nombre} ${c.cliente.usuario.apellido}`.toLowerCase();
-        const carpintero = `${c.carpintero.usuario.nombre} ${c.carpintero.usuario.apellido}`.toLowerCase();
-        const desc = c.descripcion.toLowerCase();
+    return props.cotizaciones.data.filter((c) => {
+        const client = c.cliente?.usuario ? `${c.cliente.usuario.nombre} ${c.cliente.usuario.apellido}`.toLowerCase() : '';
+        const carpintero = c.carpintero?.usuario ? `${c.carpintero.usuario.nombre} ${c.carpintero.usuario.apellido}`.toLowerCase() : '';
+        const desc = c.descripcion ? c.descripcion.toLowerCase() : '';
         const query = searchQuery.value.toLowerCase();
         return client.includes(query) || carpintero.includes(query) || desc.includes(query);
     });
@@ -67,8 +85,16 @@ const filteredCotizaciones = computed(() => {
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-foreground">Gestión de Cotizaciones</h1>
-                    <p class="text-sm text-muted-foreground">Presupuestos y cotizaciones de proyectos de carpintería para clientes.</p>
+                    <p class="text-sm text-muted-foreground">Presupuestos y cotizaciones de proyectos de carpintería.</p>
                 </div>
+                <!-- Solo el Cliente (rol 2) puede solicitar nuevas cotizaciones -->
+                <Link
+                    v-if="currentUserRole === 2"
+                    href="/cotizaciones/create"
+                    class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
+                >
+                    Solicitar Cotización
+                </Link>
             </div>
 
             <div class="flex items-center gap-2 py-4">
@@ -95,11 +121,11 @@ const filteredCotizaciones = computed(() => {
                         <thead class="border-b border-sidebar-border bg-muted/50">
                             <tr class="text-left font-medium text-muted-foreground">
                                 <th class="p-4">ID</th>
-                                <th class="p-4">Cliente</th>
-                                <th class="p-4">Carpintero Asignado</th>
+                                <th class="p-4" v-if="currentUserRole !== 2">Cliente</th>
                                 <th class="p-4">Descripción</th>
-                                <th class="p-4">Costo Total</th>
+                                <th class="p-4">Total</th>
                                 <th class="p-4">Estado</th>
+                                <th class="p-4 text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
@@ -110,20 +136,49 @@ const filteredCotizaciones = computed(() => {
                             </tr>
                             <tr v-for="cotizacion in filteredCotizaciones" :key="cotizacion.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ cotizacion.id }}</td>
-                                <td class="p-4 font-medium">{{ cotizacion.cliente.usuario.nombre }} {{ cotizacion.cliente.usuario.apellido }}</td>
-                                <td class="p-4">{{ cotizacion.carpintero.usuario.nombre }} {{ cotizacion.carpintero.usuario.apellido }}</td>
+                                <td class="p-4 font-medium" v-if="currentUserRole !== 2">{{ cotizacion.cliente?.usuario?.nombre }} {{ cotizacion.cliente?.usuario?.apellido }}</td>
                                 <td class="p-4 max-w-xs truncate">{{ cotizacion.descripcion }}</td>
                                 <td class="p-4 font-semibold text-amber-600 dark:text-amber-500">
-                                    Bs. {{ parseFloat(cotizacion.costo_total).toFixed(2) }}
+                                    Bs. {{ calcularTotal(cotizacion).toFixed(2) }}
                                 </td>
                                 <td class="p-4">
-                                    <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cotizacion.estado === 'aprobada' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : cotizacion.estado === 'pendiente' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300'}`">
+                                    <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(cotizacion.estado || '').toLowerCase() === 'aprobada' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : ((cotizacion.estado || '').toLowerCase() === 'pendiente' ? 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300')}`">
                                         {{ cotizacion.estado }}
                                     </span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <Link
+                                        :href="`/cotizaciones/${cotizacion.id}`"
+                                        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                    >
+                                        Ver Detalles
+                                    </Link>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="p-4 flex items-center justify-between border-t border-sidebar-border" v-if="cotizaciones.links && cotizaciones.links.length > 3">
+                    <div class="flex flex-wrap gap-1">
+                        <template v-for="(link, key) in cotizaciones.links" :key="key">
+                            <Link
+                                v-if="link.url"
+                                :href="link.url"
+                                class="px-3 py-1 text-sm rounded-md border"
+                                :class="link.active ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-transparent hover:bg-zinc-100 text-zinc-600 border-zinc-200 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-800'"
+                                preserve-scroll
+                            >
+                                <span v-html="link.label"></span>
+                            </Link>
+                            <span
+                                v-else
+                                class="px-3 py-1 text-sm rounded-md border border-zinc-200 text-zinc-400 opacity-50 dark:border-zinc-800 dark:text-zinc-600"
+                                v-html="link.label"
+                            ></span>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
