@@ -20,6 +20,15 @@ withDefaults(defineProps<Props>(), {
         <AppContent variant="sidebar">
             <AppSidebarHeader :breadcrumbs="breadcrumbs" />
             <slot />
+            
+            <footer class="mt-auto py-6 border-t border-sidebar-border bg-sidebar text-sidebar-foreground text-center">
+                <p class="text-sm">
+                    Visitas a esta página: <span class="font-bold">{{ $page.props.current_page_visits }}</span>
+                </p>
+                <p class="text-xs text-muted-foreground mt-1">
+                    &copy; {{ new Date().getFullYear() }} Carpintería Cruz S.A. Todos los derechos reservados.
+                </p>
+            </footer>
         </AppContent>
     </AppShell>
 </template>

@@ -38,6 +38,9 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $url = $request->path();
+        $visit = \App\Models\PageVisit::where('url', $url)->first();
+
         return array_merge(parent::share($request), [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -45,6 +48,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user() ? $request->user()->load('rol') : null,
             ],
+            'current_page_visits' => $visit ? $visit->visits : 0,
         ]);
     }
 }
