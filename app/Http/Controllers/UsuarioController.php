@@ -33,17 +33,27 @@ class UsuarioController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Verificamos el permiso (por ejemplo, LISUSU para "Listar Usuarios")
-        // Descomenta la siguiente línea cuando tus permisos estén creados en BD
         $this->verificarPermiso('LISUSU');
+        $search = $request->input('search');
 
-        // 2. Obtenemos los usuarios con paginación (10 por página) e incluimos su rol
-        $usuarios = User::with('rol')->paginate(10);
+        $query = User::with('rol')->latest();
+        
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('apellido', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('rol', function($qRol) use ($search) {
+                      $qRol->where('nombre', 'like', "%{$search}%");
+                  });
+            });
+        }
 
         return Inertia::render('Usuarios/Index', [
-            'usuarios' => $usuarios
+            'usuarios' => $query->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search'])
         ]);
     }
 

@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Tipo {
     id: number;
@@ -12,8 +13,15 @@ interface Tipo {
     estado: string;
 }
 
+interface PaginatedTipos {
+    data: Tipo[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    tipos: Tipo[];
+    tipos: PaginatedTipos;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,26 +29,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tipos de Mueble', href: '/tipos' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/tipos', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['tipos'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredTipos = computed(() => {
-    return props.tipos.filter((t) => {
-        const name = t.nombre.toLowerCase();
-        const desc = t.descripcion.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return name.includes(query) || desc.includes(query);
-    });
-});
 
 // Modal State
 const isModalOpen = ref(false);
@@ -146,12 +157,12 @@ const deleteTipo = (id: number) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredTipos.length === 0">
+                            <tr v-if="tipos.data.length === 0">
                                 <td colspan="5" class="p-4 text-center text-muted-foreground">
                                     No se encontraron tipos de mueble.
                                 </td>
                             </tr>
-                            <tr v-for="tipo in filteredTipos" :key="tipo.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="tipo in tipos.data" :key="tipo.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold text-muted-foreground">#{{ tipo.id }}</td>
                                 <td class="p-4 font-medium">{{ tipo.nombre }}</td>
                                 <td class="p-4 truncate max-w-md" :title="tipo.descripcion">{{ tipo.descripcion }}</td>
@@ -172,6 +183,7 @@ const deleteTipo = (id: number) => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="tipos.links" />
             </div>
         </div>
 

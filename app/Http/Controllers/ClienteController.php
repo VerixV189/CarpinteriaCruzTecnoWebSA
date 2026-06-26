@@ -31,14 +31,30 @@ class ClienteController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->verificarPermiso('LISCLI');
+        $search = $request->input('search');
 
-        $clientes = Cliente::with('usuario')->paginate(10);
+        $query = Cliente::with('usuario')->latest();
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nit_facturacion', 'like', "%{$search}%")
+                  ->orWhere('razon_social', 'like', "%{$search}%")
+                  ->orWhereHas('usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $clientes = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Clientes/Index', [
-            'clientes' => $clientes
+            'clientes' => $clientes,
+            'filters' => $request->only(['search'])
         ]);
     }
 

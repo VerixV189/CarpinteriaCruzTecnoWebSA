@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Proveedor {
     id: number;
@@ -16,8 +17,15 @@ interface Insumo {
     proveedor: Proveedor;
 }
 
+interface PaginatedInsumos {
+    data: Insumo[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    insumos: Insumo[];
+    insumos: PaginatedInsumos;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -25,26 +33,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Insumos', href: '/insumos' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/insumos', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['insumos'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredInsumos = computed(() => {
-    return props.insumos.filter((i) => {
-        const name = i.nombre.toLowerCase();
-        const provider = i.proveedor.nombre_empresa.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return name.includes(query) || provider.includes(query);
-    });
-});
 </script>
 
 <template>
@@ -88,12 +99,12 @@ const filteredInsumos = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredInsumos.length === 0">
+                            <tr v-if="insumos.data.length === 0">
                                 <td colspan="3" class="p-4 text-center text-muted-foreground">
                                     No se encontraron insumos.
                                 </td>
                             </tr>
-                            <tr v-for="insumo in filteredInsumos" :key="insumo.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="insumo in insumos.data" :key="insumo.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ insumo.id }}</td>
                                 <td class="p-4 font-medium">{{ insumo.nombre }}</td>
                                 <td class="p-4">{{ insumo.proveedor.nombre_empresa }}</td>
@@ -101,6 +112,7 @@ const filteredInsumos = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="insumos.links" />
             </div>
         </div>
     </AppLayout>

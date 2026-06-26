@@ -23,7 +23,7 @@ class PagoController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -36,10 +36,22 @@ class PagoController extends Controller
             });
         }
 
-        $pagos = $query->latest()->get();
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('estado', 'like', "%{$search}%")
+                  ->orWhereHas('venta.pedido.cotizacion.cliente.usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $pagos = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Pagos/Index', [
-            'pagos' => $pagos
+            'pagos' => $pagos,
+            'filters' => $request->only(['search'])
         ]);
     }
 

@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Permiso {
     id: number;
@@ -11,8 +12,15 @@ interface Permiso {
     created_at: string;
 }
 
+interface PaginatedPermisos {
+    data: Permiso[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    permisos: Permiso[];
+    permisos: PaginatedPermisos;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -20,23 +28,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Permisos', href: '/permisos' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/permisos', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const isRefreshing = ref(false);
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['permisos'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredPermisos = computed(() => {
-    return props.permisos.filter((p) => {
-        return p.nombre.toLowerCase().includes(searchQuery.value.toLowerCase());
-    });
-});
 </script>
 
 <template>
@@ -80,12 +94,12 @@ const filteredPermisos = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredPermisos.length === 0">
+                            <tr v-if="permisos.data.length === 0">
                                 <td colspan="3" class="p-4 text-center text-muted-foreground">
                                     No se encontraron permisos.
                                 </td>
                             </tr>
-                            <tr v-for="permiso in filteredPermisos" :key="permiso.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="permiso in permisos.data" :key="permiso.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ permiso.id }}</td>
                                 <td class="p-4 font-medium">
                                     <code class="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">
@@ -97,6 +111,7 @@ const filteredPermisos = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="permisos.links" />
             </div>
         </div>
     </AppLayout>

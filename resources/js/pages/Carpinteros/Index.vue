@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
     id: number;
@@ -19,8 +20,15 @@ interface Carpintero {
     usuario: Usuario;
 }
 
+interface PaginatedCarpinteros {
+    data: Carpintero[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    carpinteros: Carpintero[];
+    carpinteros: PaginatedCarpinteros;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,26 +36,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Carpinteros', href: '/carpinteros' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/carpinteros', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const isRefreshing = ref(false);
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['carpinteros'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredCarpinteros = computed(() => {
-    return props.carpinteros.filter((c) => {
-        const name = `${c.usuario.nombre} ${c.usuario.apellido}`.toLowerCase();
-        const specialty = c.especialidad.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return name.includes(query) || specialty.includes(query);
-    });
-});
 </script>
 
 <template>
@@ -92,12 +103,12 @@ const filteredCarpinteros = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredCarpinteros.length === 0">
+                            <tr v-if="carpinteros.data.length === 0">
                                 <td colspan="4" class="p-4 text-center text-muted-foreground">
                                     No se encontraron carpinteros.
                                 </td>
                             </tr>
-                            <tr v-for="carpintero in filteredCarpinteros" :key="carpintero.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="carpintero in carpinteros.data" :key="carpintero.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-medium">{{ carpintero.usuario.nombre }} {{ carpintero.usuario.apellido }}</td>
                                 <td class="p-4">{{ carpintero.usuario.email }}</td>
                                 <td class="p-4">{{ carpintero.especialidad }}</td>
@@ -108,6 +119,7 @@ const filteredCarpinteros = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="carpinteros.links" />
             </div>
         </div>
     </AppLayout>

@@ -10,10 +10,20 @@ use Inertia\Inertia;
 
 class ProveedorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+        $query = Proveedor::latest();
+
+        if ($search) {
+            $query->where('nombre_empresa', 'like', "%{$search}%")
+                  ->orWhere('telefono', 'like', "%{$search}%")
+                  ->orWhere('direccion', 'like', "%{$search}%");
+        }
+
         return Inertia::render('Proveedores/Index', [
-            'proveedores' => Proveedor::all()
+            'proveedores' => $query->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search'])
         ]);
     }
 }

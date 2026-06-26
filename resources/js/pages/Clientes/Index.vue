@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
     id: number;
@@ -21,13 +22,15 @@ interface Cliente {
     usuario: Usuario;
 }
 
+interface PaginatedClientes {
+    data: Cliente[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    clientes: {
-        data: Cliente[];
-        links: any[];
-        current_page: number;
-        last_page: number;
-    };
+    clientes: PaginatedClientes;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -41,27 +44,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/clientes', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const isRefreshing = ref(false);
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['clientes'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredClientes = computed(() => {
-    return props.clientes.data.filter((cliente) => {
-        const fullName = `${cliente.usuario.nombre} ${cliente.usuario.apellido}`.toLowerCase();
-        const email = cliente.usuario.email.toLowerCase();
-        const nit = cliente.nit_facturacion.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return fullName.includes(query) || email.includes(query) || nit.includes(query);
-    });
-});
 
 const deleteCliente = (id: number) => {
     if (confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
@@ -121,12 +126,12 @@ const deleteCliente = (id: number) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredClientes.length === 0">
+                            <tr v-if="clientes.data.length === 0">
                                 <td colspan="7" class="p-4 text-center text-muted-foreground">
                                     No se encontraron clientes.
                                 </td>
                             </tr>
-                            <tr v-for="cliente in filteredClientes" :key="cliente.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="cliente in clientes.data" :key="cliente.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-medium">
                                     {{ cliente.usuario.nombre }} {{ cliente.usuario.apellido }}
                                 </td>
@@ -153,28 +158,7 @@ const deleteCliente = (id: number) => {
                         </tbody>
                     </table>
                 </div>
-                
-                <!-- Paginación -->
-                <div class="p-4 flex items-center justify-between border-t border-sidebar-border" v-if="clientes.links && clientes.links.length > 3">
-                    <div class="flex flex-wrap gap-1">
-                        <template v-for="(link, key) in clientes.links" :key="key">
-                            <Link
-                                v-if="link.url"
-                                :href="link.url"
-                                class="px-3 py-1 text-sm rounded-md border"
-                                :class="link.active ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-transparent hover:bg-zinc-100 text-zinc-600 border-zinc-200 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-800'"
-                                preserve-scroll
-                            >
-                                <span v-html="link.label"></span>
-                            </Link>
-                            <span
-                                v-else
-                                class="px-3 py-1 text-sm rounded-md border border-zinc-200 text-zinc-400 opacity-50 dark:border-zinc-800 dark:text-zinc-600"
-                                v-html="link.label"
-                            ></span>
-                        </template>
-                    </div>
-                </div>
+                <Pagination :links="clientes.links" />
             </div>
         </div>
     </AppLayout>

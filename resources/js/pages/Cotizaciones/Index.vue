@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, Link, usePage } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
     id: number;
@@ -32,13 +33,15 @@ interface Cotizacion {
     detalle_cotizaciones?: DetalleCotizacion[];
 }
 
+interface PaginatedCotizaciones {
+    data: Cotizacion[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    cotizaciones: {
-        data: Cotizacion[];
-        links: any[];
-        current_page: number;
-        last_page: number;
-    };
+    cotizaciones: PaginatedCotizaciones;
+    filters?: { search?: string };
 }>();
 
 const page = usePage();
@@ -54,27 +57,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Cotizaciones', href: '/cotizaciones' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/cotizaciones', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['cotizaciones'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredCotizaciones = computed(() => {
-    return props.cotizaciones.data.filter((c) => {
-        const client = c.cliente?.usuario ? `${c.cliente.usuario.nombre} ${c.cliente.usuario.apellido}`.toLowerCase() : '';
-        const carpintero = c.carpintero?.usuario ? `${c.carpintero.usuario.nombre} ${c.carpintero.usuario.apellido}`.toLowerCase() : '';
-        const desc = c.descripcion ? c.descripcion.toLowerCase() : '';
-        const query = searchQuery.value.toLowerCase();
-        return client.includes(query) || carpintero.includes(query) || desc.includes(query);
-    });
-});
 </script>
 
 <template>
@@ -129,12 +134,12 @@ const filteredCotizaciones = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredCotizaciones.length === 0">
+                            <tr v-if="cotizaciones.data.length === 0">
                                 <td colspan="6" class="p-4 text-center text-muted-foreground">
                                     No se encontraron cotizaciones.
                                 </td>
                             </tr>
-                            <tr v-for="cotizacion in filteredCotizaciones" :key="cotizacion.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="cotizacion in cotizaciones.data" :key="cotizacion.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ cotizacion.id }}</td>
                                 <td class="p-4 font-medium" v-if="currentUserRole !== 2">{{ cotizacion.cliente?.usuario?.nombre }} {{ cotizacion.cliente?.usuario?.apellido }}</td>
                                 <td class="p-4 max-w-xs truncate">{{ cotizacion.descripcion }}</td>
@@ -158,28 +163,7 @@ const filteredCotizaciones = computed(() => {
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Paginación -->
-                <div class="p-4 flex items-center justify-between border-t border-sidebar-border" v-if="cotizaciones.links && cotizaciones.links.length > 3">
-                    <div class="flex flex-wrap gap-1">
-                        <template v-for="(link, key) in cotizaciones.links" :key="key">
-                            <Link
-                                v-if="link.url"
-                                :href="link.url"
-                                class="px-3 py-1 text-sm rounded-md border"
-                                :class="link.active ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-transparent hover:bg-zinc-100 text-zinc-600 border-zinc-200 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-800'"
-                                preserve-scroll
-                            >
-                                <span v-html="link.label"></span>
-                            </Link>
-                            <span
-                                v-else
-                                class="px-3 py-1 text-sm rounded-md border border-zinc-200 text-zinc-400 opacity-50 dark:border-zinc-800 dark:text-zinc-600"
-                                v-html="link.label"
-                            ></span>
-                        </template>
-                    </div>
-                </div>
+                <Pagination :links="cotizaciones.links" />
             </div>
         </div>
     </AppLayout>

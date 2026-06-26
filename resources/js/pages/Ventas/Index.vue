@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { RefreshCw, Eye, X } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
     nombre: string;
@@ -45,8 +46,15 @@ interface Venta {
     created_at: string;
 }
 
+interface PaginatedVentas {
+    data: Venta[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    ventas: Venta[];
+    ventas: PaginatedVentas;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -54,27 +62,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Ventas', href: '/ventas' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/ventas', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['ventas'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredVentas = computed(() => {
-    return props.ventas.filter((v) => {
-        const client = `${v.pedido?.cotizacion?.cliente?.usuario?.nombre} ${v.pedido?.cotizacion?.cliente?.usuario?.apellido}`.toLowerCase();
-        const type = v.tipo.toLowerCase();
-        const codigo = v.codigo.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return client.includes(query) || type.includes(query) || codigo.includes(query);
-    });
-});
 
 // Modal state
 const selectedVenta = ref<Venta | null>(null);
@@ -144,12 +154,12 @@ const totalPagado = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredVentas.length === 0">
+                            <tr v-if="ventas.data.length === 0">
                                 <td colspan="6" class="p-4 text-center text-muted-foreground">
                                     No se encontraron ventas registradas.
                                 </td>
                             </tr>
-                            <tr v-for="venta in filteredVentas" :key="venta.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="venta in ventas.data" :key="venta.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold text-muted-foreground">{{ venta.codigo }}</td>
                                 <td class="p-4 font-medium">{{ venta.pedido?.cotizacion?.cliente?.usuario?.nombre }} {{ venta.pedido?.cotizacion?.cliente?.usuario?.apellido }}</td>
                                 <td class="p-4">{{ new Date(venta.created_at).toLocaleDateString() }}</td>
@@ -171,6 +181,7 @@ const totalPagado = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="ventas.links" />
             </div>
         </div>
 

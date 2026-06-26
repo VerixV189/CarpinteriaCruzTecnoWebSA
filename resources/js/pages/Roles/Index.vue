@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Rol {
     id: number;
@@ -12,8 +13,15 @@ interface Rol {
     created_at: string;
 }
 
+interface PaginatedRoles {
+    data: Rol[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    roles: Rol[];
+    roles: PaginatedRoles;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,23 +29,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Roles', href: '/roles' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/roles', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const isRefreshing = ref(false);
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['roles'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredRoles = computed(() => {
-    return props.roles.filter((r) => {
-        return r.nombre.toLowerCase().includes(searchQuery.value.toLowerCase());
-    });
-});
 </script>
 
 <template>
@@ -82,12 +96,12 @@ const filteredRoles = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredRoles.length === 0">
+                            <tr v-if="roles.data.length === 0">
                                 <td colspan="4" class="p-4 text-center text-muted-foreground">
                                     No se encontraron roles.
                                 </td>
                             </tr>
-                            <tr v-for="rol in filteredRoles" :key="rol.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="rol in roles.data" :key="rol.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ rol.id }}</td>
                                 <td class="p-4 font-medium">{{ rol.nombre }}</td>
                                 <td class="p-4">
@@ -100,6 +114,7 @@ const filteredRoles = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="roles.links" />
             </div>
         </div>
     </AppLayout>

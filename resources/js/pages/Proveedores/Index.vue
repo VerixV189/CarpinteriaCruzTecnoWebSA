@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Proveedor {
     id: number;
@@ -12,8 +13,15 @@ interface Proveedor {
     direccion: string;
 }
 
+interface PaginatedProveedores {
+    data: Proveedor[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    proveedores: Proveedor[];
+    proveedores: PaginatedProveedores;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,26 +29,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Proveedores', href: '/proveedores' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/proveedores', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['proveedores'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredProveedores = computed(() => {
-    return props.proveedores.filter((p) => {
-        const company = p.nombre_empresa.toLowerCase();
-        const address = p.direccion.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return company.includes(query) || address.includes(query);
-    });
-});
 </script>
 
 <template>
@@ -85,12 +96,12 @@ const filteredProveedores = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredProveedores.length === 0">
+                            <tr v-if="proveedores.data.length === 0">
                                 <td colspan="4" class="p-4 text-center text-muted-foreground">
                                     No se encontraron proveedores.
                                 </td>
                             </tr>
-                            <tr v-for="proveedor in filteredProveedores" :key="proveedor.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="proveedor in proveedores.data" :key="proveedor.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ proveedor.id }}</td>
                                 <td class="p-4 font-medium">{{ proveedor.nombre_empresa }}</td>
                                 <td class="p-4">{{ proveedor.telefono }}</td>
@@ -99,6 +110,7 @@ const filteredProveedores = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="proveedores.links" />
             </div>
         </div>
     </AppLayout>

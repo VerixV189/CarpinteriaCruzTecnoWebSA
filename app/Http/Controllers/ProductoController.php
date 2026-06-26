@@ -12,11 +12,23 @@ use Inertia\Inertia;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+        $query = Producto::with(['tipo', 'imagenes'])->latest();
+
+        if ($search) {
+            $query->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('descripcion', 'like', "%{$search}%")
+                  ->orWhereHas('tipo', function($q) use ($search) {
+                      $q->where('nombre', 'like', "%{$search}%");
+                  });
+        }
+
         return Inertia::render('Productos/Index', [
-            'productos' => Producto::with(['tipo', 'imagenes'])->get(),
-            'tipos' => Tipo::all()
+            'productos' => $query->paginate(10)->withQueryString(),
+            'tipos' => Tipo::all(),
+            'filters' => $request->only(['search'])
         ]);
     }
 

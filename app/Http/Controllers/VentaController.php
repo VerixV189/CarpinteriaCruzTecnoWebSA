@@ -10,10 +10,26 @@ use Inertia\Inertia;
 
 class VentaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+        
+        $query = Venta::with(['pedido.cotizacion.cliente.usuario', 'pagos'])->latest();
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('codigo', 'like', "%{$search}%")
+                  ->orWhere('tipo', 'like', "%{$search}%")
+                  ->orWhereHas('pedido.cotizacion.cliente.usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         return Inertia::render('Ventas/Index', [
-            'ventas' => Venta::with(['pedido.cotizacion.cliente.usuario', 'pagos'])->latest()->get()
+            'ventas' => $query->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search'])
         ]);
     }
 

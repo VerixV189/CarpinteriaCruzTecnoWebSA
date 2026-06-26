@@ -8,11 +8,27 @@ use Inertia\Inertia;
 
 class BitacoraController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $bitacoras = Bitacora::with('usuario')->orderBy('created_at', 'desc')->get();
+        $search = $request->input('search');
+        $query = Bitacora::with('usuario')->orderBy('created_at', 'desc');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('accion', 'like', "%{$search}%")
+                  ->orWhere('modelo_tipo', 'like', "%{$search}%")
+                  ->orWhereHas('usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $bitacoras = $query->paginate(10)->withQueryString();
+
         return Inertia::render('Bitacoras/Index', [
-            'bitacoras' => $bitacoras
+            'bitacoras' => $bitacoras,
+            'filters' => $request->only(['search'])
         ]);
     }
 }

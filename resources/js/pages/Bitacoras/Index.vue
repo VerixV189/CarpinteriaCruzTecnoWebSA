@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
     nombre: string;
@@ -23,8 +24,15 @@ interface Bitacora {
     usuario: Usuario | null;
 }
 
+interface PaginatedBitacoras {
+    data: Bitacora[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    bitacoras: Bitacora[];
+    bitacoras: PaginatedBitacoras;
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -32,27 +40,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Bitácora', href: '/bitacoras' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/bitacoras', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['bitacoras'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredBitacoras = computed(() => {
-    return props.bitacoras.filter((b) => {
-        const user = b.usuario ? `${b.usuario.nombre} ${b.usuario.apellido}`.toLowerCase() : 'sistema';
-        const action = b.accion.toLowerCase();
-        const model = b.modelo_tipo.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return user.includes(query) || action.includes(query) || model.includes(query);
-    });
-});
 </script>
 
 <template>
@@ -98,12 +108,12 @@ const filteredBitacoras = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredBitacoras.length === 0">
+                            <tr v-if="bitacoras.data.length === 0">
                                 <td colspan="5" class="p-4 text-center text-muted-foreground">
                                     No se registraron eventos en la bitácora.
                                 </td>
                             </tr>
-                            <tr v-for="bitacora in filteredBitacoras" :key="bitacora.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="bitacora in bitacoras.data" :key="bitacora.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">{{ new Date(bitacora.created_at).toLocaleString() }}</td>
                                 <td class="p-4">
                                     <span v-if="bitacora.usuario" class="font-medium">
@@ -124,6 +134,7 @@ const filteredBitacoras = computed(() => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="bitacoras.links" />
             </div>
         </div>
     </AppLayout>

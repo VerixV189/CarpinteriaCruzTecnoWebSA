@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Tipo {
     id: number;
@@ -27,9 +28,16 @@ interface Producto {
     imagenes: Imagen[];
 }
 
+interface PaginatedProductos {
+    data: Producto[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    productos: Producto[];
+    productos: PaginatedProductos;
     tipos: Tipo[];
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -37,27 +45,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Productos', href: '/productos' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/productos', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['productos'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredProductos = computed(() => {
-    return props.productos.filter((p) => {
-        const name = p.nombre.toLowerCase();
-        const desc = p.descripcion.toLowerCase();
-        const type = p.tipo?.nombre?.toLowerCase() || '';
-        const query = searchQuery.value.toLowerCase();
-        return name.includes(query) || desc.includes(query) || type.includes(query);
-    });
-});
 
 // Modal State
 const isModalOpen = ref(false);
@@ -183,12 +193,12 @@ const deleteProducto = (id: number) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredProductos.length === 0">
+                            <tr v-if="productos.data.length === 0">
                                 <td colspan="7" class="p-4 text-center text-muted-foreground">
                                     No se encontraron productos.
                                 </td>
                             </tr>
-                            <tr v-for="producto in filteredProductos" :key="producto.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="producto in productos.data" :key="producto.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4">
                                     <div v-if="producto.imagenes && producto.imagenes.length > 0" class="h-10 w-10 rounded overflow-hidden bg-muted">
                                         <img :src="producto.imagenes[0].URL" alt="img" class="h-full w-full object-cover" />
@@ -224,6 +234,7 @@ const deleteProducto = (id: number) => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="productos.links" />
             </div>
         </div>
 

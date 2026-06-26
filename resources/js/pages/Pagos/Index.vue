@@ -2,9 +2,10 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import axios from 'axios';
 import { RefreshCw, QrCode, CreditCard, Banknote, LoaderCircle, X } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
     nombre: string;
@@ -35,8 +36,15 @@ interface Pago {
     venta: Venta;
 }
 
+interface PaginatedPagos {
+    data: Pago[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+}
+
 const props = defineProps<{
-    pagos: Pago[];
+    pagos: PaginatedPagos;
+    filters?: { search?: string };
 }>();
 
 const page = usePage();
@@ -47,25 +55,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Pagos', href: '/pagos' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
 const isRefreshing = ref(false);
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/pagos', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['pagos'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredPagos = computed(() => {
-    return props.pagos.filter((p) => {
-        const client = `${p.venta.pedido.cotizacion.cliente.usuario.nombre} ${p.venta.pedido.cotizacion.cliente.usuario.apellido}`.toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return client.includes(query);
-    });
-});
 
 // Modal de Pago Fácil (Cliente)
 const showPagoModal = ref(false);
@@ -172,12 +184,12 @@ const cobrarEfectivo = (pago: Pago) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredPagos.length === 0">
+                            <tr v-if="pagos.data.length === 0">
                                 <td :colspan="currentUserRole !== 2 ? 6 : 5" class="p-4 text-center text-muted-foreground">
                                     No se encontraron pagos registrados.
                                 </td>
                             </tr>
-                            <tr v-for="pago in filteredPagos" :key="pago.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="pago in pagos.data" :key="pago.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#REC-{{ pago.id }}</td>
                                 <td v-if="currentUserRole !== 2" class="p-4 font-medium">{{ pago.venta.pedido.cotizacion.cliente.usuario.nombre }} {{ pago.venta.pedido.cotizacion.cliente.usuario.apellido }}</td>
                                 <td class="p-4 font-bold text-green-600 dark:text-green-500">
@@ -210,6 +222,7 @@ const cobrarEfectivo = (pago: Pago) => {
                         </tbody>
                     </table>
                 </div>
+                <Pagination :links="pagos.links" />
             </div>
         </div>
 

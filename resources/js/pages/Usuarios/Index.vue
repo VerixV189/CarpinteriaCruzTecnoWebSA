@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
+import Pagination from '@/components/Pagination.vue';
 
 interface Rol {
     id: number;
@@ -27,6 +28,7 @@ const props = defineProps<{
         current_page: number;
         last_page: number;
     };
+    filters?: { search?: string };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,27 +36,29 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Usuarios', href: '/usuarios' },
 ];
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.search || '');
+
+let searchTimeout: ReturnType<typeof setTimeout>;
+watch(searchQuery, (value) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        router.get('/usuarios', { search: value }, {
+            preserveState: true,
+            replace: true
+        });
+    }, 300);
+});
 
 const isRefreshing = ref(false);
 const refreshPage = () => {
     isRefreshing.value = true;
     router.reload({
+        only: ['usuarios'],
         onFinish: () => {
             isRefreshing.value = false;
         }
     });
 };
-
-const filteredUsuarios = computed(() => {
-    return props.usuarios.data.filter((u) => {
-        const name = `${u.nombre} ${u.apellido}`.toLowerCase();
-        const email = u.email.toLowerCase();
-        const role = (u.rol?.nombre || '').toLowerCase();
-        const query = searchQuery.value.toLowerCase();
-        return name.includes(query) || email.includes(query) || role.includes(query);
-    });
-});
 </script>
 
 <template>
@@ -103,12 +107,12 @@ const filteredUsuarios = computed(() => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
-                            <tr v-if="filteredUsuarios.length === 0">
+                            <tr v-if="usuarios.data.length === 0">
                                 <td colspan="5" class="p-4 text-center text-muted-foreground">
                                     No se encontraron usuarios.
                                 </td>
                             </tr>
-                            <tr v-for="usuario in filteredUsuarios" :key="usuario.id" class="hover:bg-muted/50 transition-colors">
+                            <tr v-for="usuario in usuarios.data" :key="usuario.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-medium">{{ usuario.nombre }} {{ usuario.apellido }}</td>
                                 <td class="p-4">{{ usuario.email }}</td>
                                 <td class="p-4">{{ usuario.telefono || '-' }}</td>
@@ -127,27 +131,7 @@ const filteredUsuarios = computed(() => {
                     </table>
                 </div>
                 
-                <!-- Paginación -->
-                <div class="p-4 flex items-center justify-between border-t border-sidebar-border" v-if="usuarios.links.length > 3">
-                    <div class="flex flex-wrap gap-1">
-                        <template v-for="(link, key) in usuarios.links" :key="key">
-                            <Link
-                                v-if="link.url"
-                                :href="link.url"
-                                class="px-3 py-1 text-sm rounded-md border"
-                                :class="link.active ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'bg-transparent hover:bg-zinc-100 text-zinc-600 border-zinc-200 dark:hover:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-800'"
-                                preserve-scroll
-                            >
-                                <span v-html="link.label"></span>
-                            </Link>
-                            <span
-                                v-else
-                                class="px-3 py-1 text-sm rounded-md border border-zinc-200 text-zinc-400 opacity-50 dark:border-zinc-800 dark:text-zinc-600"
-                                v-html="link.label"
-                            ></span>
-                        </template>
-                    </div>
-                </div>
+                <Pagination :links="usuarios.links" />
             </div>
         </div>
     </AppLayout>

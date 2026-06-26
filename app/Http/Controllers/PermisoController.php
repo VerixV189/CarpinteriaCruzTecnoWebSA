@@ -10,10 +10,20 @@ use Inertia\Inertia;
 
 class PermisoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->input('search');
+        
+        $query = Permiso::latest();
+
+        if ($search) {
+            $query->where('nombre', 'like', "%{$search}%")
+                  ->orWhere('descripcion', 'like', "%{$search}%");
+        }
+
         return Inertia::render('Permisos/Index', [
-            'permisos' => Permiso::all()
+            'permisos' => $query->paginate(10)->withQueryString(),
+            'filters' => $request->only(['search'])
         ]);
     }
 }

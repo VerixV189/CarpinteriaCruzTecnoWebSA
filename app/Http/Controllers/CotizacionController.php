@@ -21,7 +21,7 @@ class CotizacionController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->verificarPermiso('LISCOT');
 
@@ -40,10 +40,23 @@ class CotizacionController extends Controller
         }
         // Admin (1) y Carpintero (3) ven todas las cotizaciones automáticamente
 
-        $cotizaciones = $query->latest()->paginate(10);
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('descripcion', 'like', "%{$search}%")
+                  ->orWhere('estado', 'like', "%{$search}%")
+                  ->orWhereHas('cliente.usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $cotizaciones = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Cotizaciones/Index', [
-            'cotizaciones' => $cotizaciones
+            'cotizaciones' => $cotizaciones,
+            'filters' => $request->only(['search'])
         ]);
     }
 
