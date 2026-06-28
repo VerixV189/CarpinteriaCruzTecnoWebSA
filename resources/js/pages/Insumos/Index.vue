@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import { RefreshCw } from 'lucide-vue-next';
+import { RefreshCw, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Proveedor {
     id: number;
@@ -56,6 +57,24 @@ const refreshPage = () => {
         }
     });
 };
+
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(`/insumos/${pendingDeleteId.value}`, {
+            preserveScroll: true,
+        });
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
+    }
+};
+
+const deleteInsumo = (id: number) => {
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
+};
 </script>
 
 <template>
@@ -68,6 +87,9 @@ const refreshPage = () => {
                     <h1 class="text-2xl font-bold text-foreground">Gestión de Insumos</h1>
                     <p class="text-sm text-muted-foreground">Listado de insumos y materiales y sus respectivos proveedores.</p>
                 </div>
+                <Link href="/insumos/create" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors">
+                    Crear Insumo
+                </Link>
             </div>
 
             <div class="flex items-center gap-2 py-4">
@@ -96,11 +118,12 @@ const refreshPage = () => {
                                 <th class="p-4">ID</th>
                                 <th class="p-4">Nombre Insumo</th>
                                 <th class="p-4">Proveedor</th>
+                                <th class="p-4 text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
                             <tr v-if="insumos.data.length === 0">
-                                <td colspan="3" class="p-4 text-center text-muted-foreground">
+                                <td colspan="4" class="p-4 text-center text-muted-foreground">
                                     No se encontraron insumos.
                                 </td>
                             </tr>
@@ -108,6 +131,16 @@ const refreshPage = () => {
                                 <td class="p-4 font-semibold">#{{ insumo.id }}</td>
                                 <td class="p-4 font-medium">{{ insumo.nombre }}</td>
                                 <td class="p-4">{{ insumo.proveedor.nombre_empresa }}</td>
+                                <td class="p-4 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <Link :href="`/insumos/${insumo.id}/edit`" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                                            <Edit class="h-3.5 w-3.5" />
+                                        </Link>
+                                        <button @click="deleteInsumo(insumo.id)" class="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-red-100">
+                                            <Trash2 class="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -115,5 +148,12 @@ const refreshPage = () => {
                 <Pagination :links="insumos.links" />
             </div>
         </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Insumo"
+            message="¿Está seguro de que desea eliminar este insumo? Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>

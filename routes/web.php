@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    $user = Illuminate\Support\Facades\Auth::user();
+    if ($user && in_array($user->rol_id, [1, 3])) {
+        return redirect()->route('dashboard');
+    }
     return Inertia::render('Welcome');
 })->name('home');
 
@@ -42,10 +46,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('carpinteros', App\Http\Controllers\CarpinteroController::class);
     Route::resource('insumos', App\Http\Controllers\InsumoController::class);
     Route::resource('productos', App\Http\Controllers\ProductoController::class);
+    Route::post('productos/{producto}/insumos', [App\Http\Controllers\ProductoController::class, 'updateInsumos'])->name('productos.insumos.update');
     Route::resource('proveedores', App\Http\Controllers\ProveedorController::class);
     Route::resource('tipos', App\Http\Controllers\TipoController::class);
     Route::post('cotizaciones/{cotizacion}/detalles', [App\Http\Controllers\CotizacionController::class, 'storeDetalle'])->name('cotizaciones.detalles.store');
     Route::put('cotizaciones/{cotizacion}/estado', [App\Http\Controllers\CotizacionController::class, 'updateEstado'])->name('cotizaciones.estado.update');
+    Route::put('cotizaciones/{cotizacion}/enviar', [App\Http\Controllers\CotizacionController::class, 'enviarCotizacion'])->name('cotizaciones.enviar');
     Route::resource('cotizaciones', App\Http\Controllers\CotizacionController::class)->parameters([
         'cotizaciones' => 'cotizacion'
     ]);
@@ -58,7 +64,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('carrito/agregar', [App\Http\Controllers\MarketplaceController::class, 'addToCart'])->name('marketplace.addToCart');
     Route::put('carrito/actualizar/{detalle}', [App\Http\Controllers\MarketplaceController::class, 'updateCart'])->name('marketplace.updateCart');
     Route::delete('carrito/eliminar/{detalle}', [App\Http\Controllers\MarketplaceController::class, 'removeFromCart'])->name('marketplace.removeFromCart');
-    Route::post('carrito/checkout', [App\Http\Controllers\MarketplaceController::class, 'checkout'])->name('marketplace.checkout');
+    Route::post('carrito/checkout', [App\Http\Controllers\MarketplaceController::class, 'checkout'])
+        ->middleware('throttle:3,1')
+        ->name('marketplace.checkout');
 
     // Rutas personalizadas de Pagos
     Route::put('pagos/{pago}/efectivo', [App\Http\Controllers\PagoController::class, 'marcarEfectivo'])->name('pagos.efectivo');

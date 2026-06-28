@@ -20,33 +20,75 @@ class MarketplaceController extends Controller
     private function getCliente()
     {
         $user = Auth::user();
-        if (!$user || $user->rol_id !== 2 || !$user->cliente) {
+        if (!$user) {
+            abort(403, 'Debes iniciar sesión para acceder al Marketplace.');
+        }
+
+        if ($user->rol_id !== 2 || !$user->cliente) {
             abort(403, 'Solo los clientes registrados pueden acceder al Marketplace.');
         }
-        return $user->cliente;
+
+        $cliente = \App\Models\Cliente::where('usuario_id', $user->id)->first();
+        if (!$cliente) {
+            $cliente = \App\Models\Cliente::create([
+                'usuario_id' => $user->id,
+                'nit_facturacion' => '123456789',
+                'razon_social' => ($user->nombre ?? 'Usuario') . ' ' . ($user->apellido ?? 'Test') . ' (Simulado)',
+                'direccion_envio' => 'Dirección de Prueba'
+            ]);
+        }
+        return $cliente;
+    }
+
+    private function checkRestricted()
+    {
+        $user = Auth::user();
+        if ($user && in_array($user->rol_id, [1, 3])) {
+            return redirect()->route('dashboard');
+        }
+        return null;
     }
 
     public function index()
     {
-        $cliente = $this->getCliente();
+        if ($redirect = $this->checkRestricted()) {
+            return $redirect;
+        }
 
-        $productos = Producto::with(['imagenes', 'tipo'])
+        $user = Auth::user();
+        $cliente = null;
+        if ($user) {
+            $cliente = $this->getCliente();
+        }
+
+        $productos = Producto::with(['imagenes', 'tipo', 'insumos'])
             ->whereIn('estado', ['disponible', 'activo', 'Disponible', 'Activo'])
             ->where('cantidad', '>', 0)
             ->get();
             
-        $carrito = Carrito::with('detalleCarritos')->firstOrCreate(
-            ['cliente_id' => $cliente->id]
-        );
+        $cartCount = 0;
+        if ($cliente) {
+            $carrito = Carrito::with('detalleCarritos')->firstOrCreate(
+                ['cliente_id' => $cliente->id]
+            );
+            $cartCount = $carrito->detalleCarritos->sum('cantidad');
+        }
+
+        $tipos = \App\Models\Tipo::all();
 
         return Inertia::render('Marketplace/Index', [
             'productos' => $productos,
-            'cartCount' => $carrito->detalleCarritos->sum('cantidad')
+            'cartCount' => $cartCount,
+            'tipos' => $tipos
         ]);
     }
 
     public function cart()
     {
+        if ($redirect = $this->checkRestricted()) {
+            return $redirect;
+        }
+
         $cliente = $this->getCliente();
 
         $carrito = Carrito::with('detalleCarritos.producto.imagenes')->firstOrCreate(
@@ -60,6 +102,10 @@ class MarketplaceController extends Controller
 
     public function addToCart(Request $request)
     {
+        if ($redirect = $this->checkRestricted()) {
+            return $redirect;
+        }
+
         $cliente = $this->getCliente();
 
         $request->validate([
@@ -93,6 +139,10 @@ class MarketplaceController extends Controller
     
     public function updateCart(Request $request, DetalleCarrito $detalle)
     {
+        if ($redirect = $this->checkRestricted()) {
+            return $redirect;
+        }
+
         $cliente = $this->getCliente();
         if ($detalle->carrito->cliente_id !== $cliente->id) abort(403);
 
@@ -112,6 +162,10 @@ class MarketplaceController extends Controller
 
     public function removeFromCart(DetalleCarrito $detalle)
     {
+        if ($redirect = $this->checkRestricted()) {
+            return $redirect;
+        }
+
         $cliente = $this->getCliente();
         if ($detalle->carrito->cliente_id !== $cliente->id) abort(403);
 
@@ -122,6 +176,10 @@ class MarketplaceController extends Controller
 
     public function checkout(Request $request)
     {
+        if ($redirect = $this->checkRestricted()) {
+            return $redirect;
+        }
+
         $cliente = $this->getCliente();
 
         $request->validate([
@@ -136,9 +194,10 @@ class MarketplaceController extends Controller
         }
 
         DB::transaction(function () use ($cliente, $request, $carrito) {
-            $total = $carrito->detalleCarritos->sum(function($item) {
-                return $item->cantidad * $item->precio_unitario;
-            });
+            $total = 0;
+            foreach ($carrito->detalleCarritos as $item) {
+                $total += $item->cantidad * $item->precio_unitario;
+            }
 
             // 1. Crear Cotización "ficticia" aprobada para la venta directa
             $cotizacion = Cotizacion::create([

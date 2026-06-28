@@ -2,9 +2,10 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
-import { RefreshCw, Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-vue-next';
+import { ref, watch, computed } from 'vue';
+import { RefreshCw, Plus, Edit, Trash2, Image as ImageIcon, Boxes, X } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Tipo {
     id: number;
@@ -14,6 +15,11 @@ interface Tipo {
 interface Imagen {
     id: number;
     URL: string;
+}
+
+interface Insumo {
+    id: number;
+    nombre: string;
 }
 
 interface Producto {
@@ -26,6 +32,7 @@ interface Producto {
     tipo_id: number;
     tipo: Tipo;
     imagenes: Imagen[];
+    insumos?: Insumo[];
 }
 
 interface PaginatedProductos {
@@ -37,6 +44,7 @@ interface PaginatedProductos {
 const props = defineProps<{
     productos: PaginatedProductos;
     tipos: Tipo[];
+    insumos: Insumo[];
     filters?: { search?: string };
 }>();
 
@@ -134,10 +142,75 @@ const saveProducto = () => {
     }
 };
 
-const deleteProducto = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este producto?')) {
-        router.delete(`/productos/${id}`);
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(`/productos/${pendingDeleteId.value}`);
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
     }
+};
+
+const deleteProducto = (id: number) => {
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
+};
+
+// Insumos Modal State and Form
+const isInsumosModalOpen = ref(false);
+const selectedProductoForInsumos = ref<Producto | null>(null);
+const selectedInsumoIds = ref<number[]>([]);
+const insumosSearchQuery = ref('');
+
+const checkedInsumos = computed(() => {
+    return props.insumos.filter(insumo => {
+        const isChecked = selectedInsumoIds.value.includes(insumo.id);
+        if (!isChecked) return false;
+        if (insumosSearchQuery.value) {
+            return insumo.nombre.toLowerCase().includes(insumosSearchQuery.value.toLowerCase());
+        }
+        return true;
+    });
+});
+
+const uncheckedInsumos = computed(() => {
+    return props.insumos.filter(insumo => {
+        const isChecked = selectedInsumoIds.value.includes(insumo.id);
+        if (isChecked) return false;
+        if (insumosSearchQuery.value) {
+            return insumo.nombre.toLowerCase().includes(insumosSearchQuery.value.toLowerCase());
+        }
+        return true;
+    });
+});
+
+const insumosForm = useForm({
+    insumos: [] as number[]
+});
+
+const openInsumosModal = (producto: Producto) => {
+    selectedProductoForInsumos.value = producto;
+    selectedInsumoIds.value = producto.insumos ? producto.insumos.map(i => i.id) : [];
+    insumosSearchQuery.value = '';
+    insumosForm.clearErrors();
+    isInsumosModalOpen.value = true;
+};
+
+const closeInsumosModal = () => {
+    isInsumosModalOpen.value = false;
+    selectedProductoForInsumos.value = null;
+    insumosSearchQuery.value = '';
+};
+
+const saveInsumos = () => {
+    if (!selectedProductoForInsumos.value) return;
+    insumosForm.insumos = selectedInsumoIds.value;
+    insumosForm.post(route('productos.insumos.update', { producto: selectedProductoForInsumos.value.id }), {
+        preserveScroll: true,
+        onSuccess: () => closeInsumosModal(),
+    });
 };
 </script>
 
@@ -223,10 +296,13 @@ const deleteProducto = (id: number) => {
                                     </span>
                                 </td>
                                 <td class="p-4 text-right">
-                                    <button @click="openEditModal(producto)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+                                    <button @click="openInsumosModal(producto)" class="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 mr-3 cursor-pointer" title="Asociar Insumos">
+                                        <Boxes class="h-4 w-4 inline" />
+                                    </button>
+                                    <button @click="openEditModal(producto)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3 cursor-pointer">
                                         <Edit class="h-4 w-4 inline" />
                                     </button>
-                                    <button @click="deleteProducto(producto.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                    <button @click="deleteProducto(producto.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 cursor-pointer">
                                         <Trash2 class="h-4 w-4 inline" />
                                     </button>
                                 </td>
@@ -317,5 +393,106 @@ const deleteProducto = (id: number) => {
                 </form>
             </div>
         </div>
+
+        <!-- Modal: Asociar Insumos -->
+        <div v-if="isInsumosModalOpen && selectedProductoForInsumos" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div class="relative w-full max-w-lg rounded-xl bg-card text-card-foreground shadow-xl border border-stone-200 dark:border-stone-800 overflow-hidden">
+                <div class="flex items-center justify-between border-b border-border p-4">
+                    <div>
+                        <h3 class="text-md font-bold text-foreground">
+                            Asociar Insumos
+                        </h3>
+                        <p class="text-xs text-muted-foreground mt-0.5">{{ selectedProductoForInsumos.nombre }}</p>
+                    </div>
+                    <button @click="closeInsumosModal" class="text-muted-foreground hover:text-foreground cursor-pointer">
+                        <X class="h-5 w-5" />
+                    </button>
+                </div>
+
+                <form @submit.prevent="saveInsumos" class="p-6 space-y-4">
+                    <div class="space-y-3">
+                        <label class="text-xs font-bold text-stone-700 dark:text-stone-300 block">
+                            Selecciona los insumos y materiales que se requieren para este producto:
+                        </label>
+
+                        <!-- Buscador de Insumos -->
+                        <div class="relative">
+                            <input
+                                v-model="insumosSearchQuery"
+                                type="text"
+                                placeholder="Buscar insumos por nombre..."
+                                class="w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 placeholder-stone-400 dark:border-stone-700 dark:text-white"
+                            />
+                        </div>
+
+                        <div v-if="insumos.length > 0" class="max-h-80 overflow-y-auto space-y-4 pr-2 border rounded-lg p-3 bg-stone-50/50 dark:bg-stone-950/20 border-stone-200 dark:border-stone-850">
+                            <!-- SECCIÓN: SELECCIONADOS -->
+                            <div class="space-y-1">
+                                <span class="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-500 tracking-wider block mb-2 px-1">
+                                    Seleccionados ({{ checkedInsumos.length }})
+                                </span>
+                                <template v-if="checkedInsumos.length > 0">
+                                    <label 
+                                        v-for="insumo in checkedInsumos" 
+                                        :key="insumo.id" 
+                                        class="flex items-center gap-3 p-2 rounded-md hover:bg-stone-105 dark:hover:bg-stone-800 transition-colors cursor-pointer select-none bg-stone-100/50 dark:bg-stone-800/40 border border-stone-200/40 dark:border-stone-800/40"
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            :value="insumo.id" 
+                                            v-model="selectedInsumoIds"
+                                            class="rounded border-stone-300 text-amber-600 focus:ring-amber-500 w-4.5 h-4.5"
+                                        />
+                                        <span class="text-xs font-semibold text-stone-900 dark:text-stone-200">{{ insumo.nombre }}</span>
+                                    </label>
+                                </template>
+                                <p v-else class="text-[11px] text-stone-500 italic p-2 pl-3">Ningún insumo seleccionado actualmente.</p>
+                            </div>
+
+                            <!-- SECCIÓN: DISPONIBLES (NO SELECCIONADOS) -->
+                            <div class="space-y-1 pt-2 border-t border-stone-200/40 dark:border-stone-800/40">
+                                <span class="text-[10px] uppercase font-bold text-stone-500 dark:text-stone-400 tracking-wider block mb-2 px-1">
+                                    Disponibles / No seleccionados ({{ uncheckedInsumos.length }})
+                                </span>
+                                <template v-if="uncheckedInsumos.length > 0">
+                                    <label 
+                                        v-for="insumo in uncheckedInsumos" 
+                                        :key="insumo.id" 
+                                        class="flex items-center gap-3 p-2 rounded-md hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer select-none"
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            :value="insumo.id" 
+                                            v-model="selectedInsumoIds"
+                                            class="rounded border-stone-300 text-amber-600 focus:ring-amber-500 w-4.5 h-4.5"
+                                        />
+                                        <span class="text-xs font-semibold text-stone-900 dark:text-stone-200">{{ insumo.nombre }}</span>
+                                    </label>
+                                </template>
+                                <p v-else class="text-[11px] text-stone-500 italic p-2 pl-3">No hay más insumos disponibles para asociar.</p>
+                            </div>
+                        </div>
+                        <p v-else class="text-xs text-stone-500 italic">No hay insumos registrados en el sistema. Ve a la sección Insumos para agregarlos.</p>
+                        <span v-if="insumosForm.errors.insumos" class="text-xs text-red-500 block">{{ insumosForm.errors.insumos }}</span>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-border">
+                        <button type="button" @click="closeInsumosModal" class="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted cursor-pointer">
+                            Cancelar
+                        </button>
+                        <button type="submit" :disabled="insumosForm.processing" class="rounded-md bg-stone-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-stone-800 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200 cursor-pointer">
+                            {{ insumosForm.processing ? 'Guardando...' : 'Guardar Cambios' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Producto"
+            message="¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>

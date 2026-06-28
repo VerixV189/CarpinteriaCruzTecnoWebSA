@@ -5,6 +5,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Tipo {
     id: number;
@@ -98,12 +99,22 @@ const saveTipo = () => {
     }
 };
 
-const deleteTipo = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este tipo de mueble?')) {
-        router.delete(`/tipos/${id}`, {
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(`/tipos/${pendingDeleteId.value}`, {
             preserveScroll: true
         });
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
     }
+};
+
+const deleteTipo = (id: number) => {
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
 };
 </script>
 
@@ -237,5 +248,12 @@ const deleteTipo = (id: number) => {
                 </form>
             </div>
         </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Tipo de Mueble"
+            message="¿Estás seguro de eliminar este tipo de mueble? Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>

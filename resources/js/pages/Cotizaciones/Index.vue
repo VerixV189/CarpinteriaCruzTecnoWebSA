@@ -44,7 +44,7 @@ const props = defineProps<{
     filters?: { search?: string };
 }>();
 
-const page = usePage();
+const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
 const calcularTotal = (cotizacion: Cotizacion) => {
@@ -102,12 +102,12 @@ const refreshPage = () => {
                 </Link>
             </div>
 
-            <div class="flex items-center gap-2 py-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 py-4">
                 <input
                     v-model="searchQuery"
                     type="text"
                     placeholder="Buscar por cliente, carpintero o descripción..."
-                    class="flex h-9 w-full max-w-sm rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    class="flex h-9 w-full sm:max-w-sm rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
                 <button
                     @click="refreshPage"
@@ -120,13 +120,60 @@ const refreshPage = () => {
                 </button>
             </div>
 
-            <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
+            <!-- VISTA DE TARJETAS PARA EL CLIENTE -->
+            <div v-if="currentUserRole === 2" class="space-y-6">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div v-if="cotizaciones.data.length === 0" class="col-span-full rounded-md border border-stone-200 dark:border-stone-800 bg-card p-12 text-center text-muted-foreground">
+                        No tienes ninguna cotización solicitada actualmente.
+                    </div>
+                    
+                    <div v-for="cotizacion in cotizaciones.data" :key="cotizacion.id" class="rounded-xl border border-stone-200 dark:border-stone-850 bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col justify-between">
+                        <!-- Cabecera de la Tarjeta -->
+                        <div class="p-5 border-b border-stone-100 dark:border-stone-850 flex flex-col sm:flex-row items-start sm:justify-between gap-3 sm:gap-4">
+                            <div class="space-y-1">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500">Solicitud de Presupuesto</span>
+                                <h3 class="text-lg font-bold text-stone-900 dark:text-white">Cotización #{{ cotizacion.id }}</h3>
+                            </div>
+                            <span :class="`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold capitalize shrink-0 self-start ${(cotizacion.estado || '').toLowerCase() === 'aprobada' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : ((cotizacion.estado || '').toLowerCase() === 'pendiente' ? 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300')}`">
+                                {{ cotizacion.estado }}
+                            </span>
+                        </div>
+
+                        <!-- Cuerpo de la Tarjeta -->
+                        <div class="p-5 space-y-4 flex-1">
+                            <!-- Requerimiento principal -->
+                            <div class="space-y-1.5">
+                                <span class="text-xs font-semibold text-stone-700 dark:text-stone-300 block">Tu Requerimiento:</span>
+                                <p class="text-sm text-stone-600 dark:text-stone-400 whitespace-pre-line line-clamp-4">{{ cotizacion.descripcion }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Pie de la Tarjeta -->
+                        <div class="p-5 border-t border-stone-100 dark:border-stone-850 bg-stone-50/40 dark:bg-stone-900/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="text-xs">
+                                <span class="text-muted-foreground">Presupuesto Estimado:</span>
+                                <div class="text-lg font-extrabold text-amber-600 dark:text-amber-500">Bs. {{ calcularTotal(cotizacion).toFixed(2) }}</div>
+                            </div>
+                            <Link
+                                :href="`/cotizaciones/${cotizacion.id}`"
+                                class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 px-4 py-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-750 transition-colors shadow-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
+                            >
+                                Ver Detalles
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+                <Pagination :links="cotizaciones.links" />
+            </div>
+
+            <!-- VISTA DE TABLA PARA ADMIN Y CARPINTERO -->
+            <div v-else class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow flex flex-col">
                 <div class="relative w-full overflow-auto">
                     <table class="w-full caption-bottom text-sm">
                         <thead class="border-b border-sidebar-border bg-muted/50">
                             <tr class="text-left font-medium text-muted-foreground">
                                 <th class="p-4">ID</th>
-                                <th class="p-4" v-if="currentUserRole !== 2">Cliente</th>
+                                <th class="p-4">Cliente</th>
                                 <th class="p-4">Descripción</th>
                                 <th class="p-4">Total</th>
                                 <th class="p-4">Estado</th>
@@ -141,7 +188,7 @@ const refreshPage = () => {
                             </tr>
                             <tr v-for="cotizacion in cotizaciones.data" :key="cotizacion.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ cotizacion.id }}</td>
-                                <td class="p-4 font-medium" v-if="currentUserRole !== 2">{{ cotizacion.cliente?.usuario?.nombre }} {{ cotizacion.cliente?.usuario?.apellido }}</td>
+                                <td class="p-4 font-medium">{{ cotizacion.cliente?.usuario?.nombre }} {{ cotizacion.cliente?.usuario?.apellido }}</td>
                                 <td class="p-4 max-w-xs truncate">{{ cotizacion.descripcion }}</td>
                                 <td class="p-4 font-semibold text-amber-600 dark:text-amber-500">
                                     Bs. {{ calcularTotal(cotizacion).toFixed(2) }}

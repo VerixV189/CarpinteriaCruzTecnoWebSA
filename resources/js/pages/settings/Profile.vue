@@ -2,7 +2,6 @@
 import { TransitionRoot } from '@headlessui/vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
-import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Profile settings',
+        title: 'Mi Perfil',
         href: '/settings/profile',
     },
 ];
@@ -31,8 +30,10 @@ const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
 
 const form = useForm({
-    name: user.name,
-    email: user.email,
+    nombre: user.nombre || '',
+    apellido: user.apellido || '',
+    telefono: user.telefono || '',
+    email: user.email || '',
 });
 
 const submit = () => {
@@ -44,29 +45,44 @@ const submit = () => {
 
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
-        <Head title="Profile settings" />
+        <Head title="Mi Perfil" />
 
         <SettingsLayout>
             <div class="flex flex-col space-y-6">
-                <HeadingSmall title="Profile information" description="Update your name and email address" />
+                <HeadingSmall title="Información del perfil" description="Actualiza tu nombre, apellido, teléfono y correo electrónico." />
 
                 <form @submit.prevent="submit" class="space-y-6">
-                    <div class="grid gap-2">
-                        <Label for="name">Name</Label>
-                        <Input id="name" class="mt-1 block w-full" v-model="form.name" required autocomplete="name" placeholder="Full name" />
-                        <InputError class="mt-2" :message="form.errors.name" />
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid gap-2">
+                            <Label for="nombre">Nombre</Label>
+                            <Input id="nombre" class="mt-1 block w-full" v-model="form.nombre" required autocomplete="given-name" placeholder="Nombre" />
+                            <InputError class="mt-2" :message="form.errors.nombre" />
+                        </div>
+
+                        <div class="grid gap-2">
+                            <Label for="apellido">Apellido</Label>
+                            <Input id="apellido" class="mt-1 block w-full" v-model="form.apellido" required autocomplete="family-name" placeholder="Apellido" />
+                            <InputError class="mt-2" :message="form.errors.apellido" />
+                        </div>
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email">Email address</Label>
+                        <Label for="telefono">Teléfono</Label>
+                        <Input id="telefono" class="mt-1 block w-full" v-model="form.telefono" required autocomplete="tel" placeholder="Teléfono" />
+                        <InputError class="mt-2" :message="form.errors.telefono" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="email">Dirección de correo electrónico</Label>
                         <Input
                             id="email"
                             type="email"
-                            class="mt-1 block w-full"
+                            class="mt-1 block w-full bg-stone-100 dark:bg-stone-850/50 cursor-not-allowed text-stone-500"
                             v-model="form.email"
                             required
+                            disabled
                             autocomplete="username"
-                            placeholder="Email address"
+                            placeholder="Correo electrónico"
                         />
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
@@ -90,7 +106,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center gap-4">
-                        <Button :disabled="form.processing">Save</Button>
+                        <Button :disabled="form.processing">Guardar</Button>
 
                         <TransitionRoot
                             :show="form.recentlySuccessful"
@@ -99,13 +115,11 @@ const submit = () => {
                             leave="transition ease-in-out"
                             leave-to="opacity-0"
                         >
-                            <p class="text-sm text-neutral-600">Saved.</p>
+                            <p class="text-sm text-neutral-600">Guardado.</p>
                         </TransitionRoot>
                     </div>
                 </form>
             </div>
-
-            <DeleteUser />
         </SettingsLayout>
     </AppLayout>
 </template>

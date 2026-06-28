@@ -9,7 +9,7 @@ const props = defineProps<{
     cotizacion: any;
 }>();
 
-const page = usePage();
+const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -65,6 +65,13 @@ const confirmarAprobacion = () => {
         }
     });
 };
+
+const enviarForm = useForm({});
+const enviarAlCliente = () => {
+    enviarForm.put(`/cotizaciones/${props.cotizacion.id}/enviar`, {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -98,7 +105,9 @@ const confirmarAprobacion = () => {
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow overflow-hidden">
                 <div class="p-4 border-b bg-muted/50 flex justify-between items-center">
                     <h2 class="text-lg font-semibold">Detalles del Presupuesto</h2>
-                    <div class="text-lg font-bold text-amber-600">Total: Bs. {{ total.toFixed(2) }}</div>
+                    <div class="text-lg font-bold text-amber-600">
+                        Total: Bs. {{ (currentUserRole === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente') ? '0.00' : total.toFixed(2) }}
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -111,12 +120,12 @@ const confirmarAprobacion = () => {
                             </tr>
                         </thead>
                         <tbody class="divide-y">
-                            <tr v-if="!cotizacion.detalle_cotizaciones || cotizacion.detalle_cotizaciones.length === 0">
+                            <tr v-if="!cotizacion.detalle_cotizaciones || cotizacion.detalle_cotizaciones.length === 0 || (currentUserRole === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente')">
                                 <td colspan="3" class="p-4 text-center text-muted-foreground italic">
                                     El carpintero aún no ha agregado detalles ni precios.
                                 </td>
                             </tr>
-                            <tr v-for="detalle in cotizacion.detalle_cotizaciones" :key="detalle.id" class="hover:bg-muted/50">
+                            <tr v-else v-for="detalle in cotizacion.detalle_cotizaciones" :key="detalle.id" class="hover:bg-muted/50">
                                 <td class="p-4">{{ detalle.descripcion }}</td>
                                 <td class="p-4 text-muted-foreground">{{ detalle.carpintero?.usuario?.nombre }}</td>
                                 <td class="p-4 text-right font-medium">{{ parseFloat(detalle.precio).toFixed(2) }}</td>
@@ -127,22 +136,35 @@ const confirmarAprobacion = () => {
             </div>
 
             <!-- ACCIONES CARPINTERO / ADMIN (Agregar Detalle) -->
-            <div v-if="(currentUserRole === 3 || currentUserRole === 1) && ((cotizacion.estado || '').toLowerCase() === 'pendiente' || (cotizacion.estado || '').toLowerCase() === 'cotizado')" class="rounded-md border border-sidebar-border bg-card shadow p-6">
-                <h3 class="text-md font-semibold mb-4">Agregar Item al Presupuesto</h3>
-                <form @submit.prevent="submitDetalle" class="flex flex-wrap items-end gap-4">
-                    <div class="flex-1 min-w-[200px] space-y-2">
-                        <label class="text-xs font-medium">Descripción (Ej: Madera Roble, Mano de Obra, Barniz)</label>
-                        <input v-model="detalleForm.descripcion" type="text" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
+            <div v-if="(currentUserRole === 3 || currentUserRole === 1) && ((cotizacion.estado || '').toLowerCase() === 'pendiente' || (cotizacion.estado || '').toLowerCase() === 'cotizado')" class="rounded-md border border-sidebar-border bg-card shadow p-6 space-y-6">
+                <div>
+                    <h3 class="text-md font-semibold mb-4">Agregar Item al Presupuesto</h3>
+                    <form @submit.prevent="submitDetalle" class="flex flex-wrap items-end gap-4">
+                        <div class="flex-1 min-w-[200px] space-y-2">
+                            <label class="text-xs font-medium">Descripción (Ej: Madera Roble, Mano de Obra, Barniz)</label>
+                            <input v-model="detalleForm.descripcion" type="text" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
+                        </div>
+                        <div class="w-32 space-y-2">
+                            <label class="text-xs font-medium">Costo (Bs)</label>
+                            <input v-model="detalleForm.precio" type="number" step="0.01" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
+                        </div>
+                        <button type="submit" :disabled="detalleForm.processing" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 h-9 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors">
+                            <LoaderCircle v-if="detalleForm.processing" class="mr-2 h-4 w-4 animate-spin" />
+                            <Plus v-else class="w-4 h-4 mr-2" /> Agregar
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Botón para Enviar Cotización al Cliente -->
+                <div v-if="(cotizacion.estado || '').toLowerCase() === 'pendiente' && cotizacion.detalle_cotizaciones && cotizacion.detalle_cotizaciones.length > 0" class="pt-4 border-t border-stone-200 dark:border-stone-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="text-xs text-muted-foreground">
+                        Tienes <strong>{{ cotizacion.detalle_cotizaciones.length }}</strong> item(s) en este presupuesto. El cliente aún no los puede ver ni aprobar. Haz clic en el botón para enviarle la cotización oficial.
                     </div>
-                    <div class="w-32 space-y-2">
-                        <label class="text-xs font-medium">Costo (Bs)</label>
-                        <input v-model="detalleForm.precio" type="number" step="0.01" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
-                    </div>
-                    <button type="submit" :disabled="detalleForm.processing" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 h-9 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors">
-                        <LoaderCircle v-if="detalleForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                        <Plus v-else class="w-4 h-4 mr-2" /> Agregar
+                    <button @click="enviarAlCliente" :disabled="enviarForm.processing" class="inline-flex items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-700 transition-colors cursor-pointer">
+                        <LoaderCircle v-if="enviarForm.processing" class="mr-2 h-4 w-4 animate-spin" />
+                        Enviar Cotización al Cliente
                     </button>
-                </form>
+                </div>
             </div>
 
             <!-- ACCIONES CLIENTE (Aprobar/Rechazar) -->

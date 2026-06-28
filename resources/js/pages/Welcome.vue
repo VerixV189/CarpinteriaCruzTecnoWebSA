@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Hammer, Ruler, Package, Phone, Mail, MapPin, LogIn } from 'lucide-vue-next';
 import NavigationHeader from '@/components/NavigationHeader.vue';
+import KidEmoji from '@/components/KidEmoji.vue';
 
 defineProps<{
     canLogin?: boolean;
@@ -12,7 +13,7 @@ defineProps<{
 <template>
     <Head title="Mueblería Cruz - Calidad para tu Hogar" />
 
-    <div class="min-h-screen bg-stone-50 dark:bg-stone-900 text-stone-800 dark:text-stone-100 flex flex-col font-sans transition-colors duration-300">
+    <div class="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300">
         <NavigationHeader />
 
         <!-- Hero Section -->
@@ -23,7 +24,7 @@ defineProps<{
                         <Ruler class="h-3 w-3" /> Muebles a Medida & Alta Calidad
                     </span>
                     <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-stone-900 dark:text-white leading-tight">
-                        Transformamos la <span class="text-amber-600 dark:text-amber-500">madera</span> en arte para tu hogar
+                        <KidEmoji /> Transformamos la <span class="text-amber-600 dark:text-amber-500">madera</span> en arte para tu hogar <KidEmoji />
                     </h1>
                     <p class="text-lg text-stone-600 dark:text-stone-300 max-w-xl">
                         En Mueblería Cruz creamos soluciones exclusivas de mobiliario, cocinas a medida, vestidores y estructuras de madera con acabados premium y durabilidad garantizada.
@@ -33,13 +34,13 @@ defineProps<{
                             :href="route('register')"
                             class="inline-flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all"
                         >
-                            Solicitar Cotización
+                            <KidEmoji /> Solicitar Cotización
                         </Link>
                         <Link
                             :href="route('login')"
                             class="inline-flex items-center gap-2 justify-center rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-6 py-3 text-base font-semibold hover:bg-stone-50 dark:hover:bg-stone-700 transition-all shadow-sm"
                         >
-                            <LogIn class="h-4 w-4" /> Acceder
+                            <KidEmoji /> <LogIn class="h-4 w-4" /> Acceder
                         </Link>
                     </div>
                 </div>
@@ -67,13 +68,13 @@ defineProps<{
             </section>
 
             <!-- Features Grid -->
-            <section class="bg-white dark:bg-stone-950 border-y border-stone-200 dark:border-stone-900 py-16 transition-colors duration-300">
+            <section class="bg-card border-y border-border py-16 transition-colors duration-300">
                 <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
                     <div class="space-y-3 p-4 rounded-2xl hover:bg-stone-50 dark:hover:bg-stone-900 transition-all">
                         <div class="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-500">
                             <Ruler class="h-6 w-6" />
                         </div>
-                        <h3 class="text-lg font-bold text-stone-900 dark:text-white">Diseño 100% Personalizado</h3>
+                        <h3 class="text-lg font-bold text-stone-900 dark:text-white"><KidEmoji /> Diseño 100% Personalizado</h3>
                         <p class="text-sm text-stone-600 dark:text-stone-400">
                             Nos adaptamos exactamente a tus espacios y requerimientos estéticos.
                         </p>
@@ -83,7 +84,7 @@ defineProps<{
                         <div class="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-500">
                             <Hammer class="h-6 w-6" />
                         </div>
-                        <h3 class="text-lg font-bold text-stone-900 dark:text-white">Artesanía de Excelencia</h3>
+                        <h3 class="text-lg font-bold text-stone-900 dark:text-white"><KidEmoji /> Artesanía de Excelencia</h3>
                         <p class="text-sm text-stone-600 dark:text-stone-400">
                             Madera seleccionada y mano de obra calificada para resultados impecables.
                         </p>
@@ -93,7 +94,7 @@ defineProps<{
                         <div class="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-500">
                             <Package class="h-6 w-6" />
                         </div>
-                        <h3 class="text-lg font-bold text-stone-900 dark:text-white">Cotización y Control de Pedidos</h3>
+                        <h3 class="text-lg font-bold text-stone-900 dark:text-white"><KidEmoji /> Cotización y Control de Pedidos</h3>
                         <p class="text-sm text-stone-600 dark:text-stone-400">
                             Regístrate para realizar y monitorear tus pedidos y cotizaciones en línea.
                         </p>
@@ -103,7 +104,7 @@ defineProps<{
         </main>
 
         <!-- Footer -->
-        <footer class="bg-stone-100 dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 py-12 transition-colors duration-300">
+        <footer class="bg-muted border-t border-border py-12 transition-colors duration-300">
             <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
                 <div class="space-y-4">
                     <div class="flex items-center gap-2">

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\RegistraBitacora;
 
 class Insumo extends Model
 {
+    use HasFactory, RegistraBitacora;
+
     protected $fillable = [
         'proveedor_id',
         'nombre'

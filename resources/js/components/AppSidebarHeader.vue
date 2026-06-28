@@ -2,11 +2,11 @@
 import { computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import { LogOut } from 'lucide-vue-next';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/composables/useInitials';
 import type { BreadcrumbItemType } from '@/types';
+import AppLogo from '@/components/AppLogo.vue';
 
 withDefaults(
     defineProps<{
@@ -28,6 +28,9 @@ const { getInitials } = useInitials();
     >
         <div class="flex items-center gap-2 min-w-0 flex-1">
             <SidebarTrigger class="-ml-1 shrink-0" />
+            <div class="flex items-center md:hidden">
+                <AppLogo />
+            </div>
         </div>
 
         <div v-if="auth?.user" class="flex items-center gap-4 shrink-0 ml-2">

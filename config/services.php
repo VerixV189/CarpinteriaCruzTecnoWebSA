@@ -39,6 +39,7 @@ return [
         'commerce_id' => env('PAGOFACIL_COMMERCE_ID'),
         'token_service' => env('PAGOFACIL_TOKEN_SERVICE'),
         'secret_token' => env('PAGOFACIL_SECRET_TOKEN'),
+        'base_url' => env('PAGOFACIL_BASE_URL', 'https://masterqr.pagofacil.com.bo/api/services/v2'),
     ],
 
 ];

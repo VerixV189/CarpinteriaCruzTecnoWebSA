@@ -15,7 +15,7 @@ class ProductoController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $query = Producto::with(['tipo', 'imagenes'])->latest();
+        $query = Producto::with(['tipo', 'imagenes', 'insumos'])->latest();
 
         if ($search) {
             $query->where('nombre', 'like', "%{$search}%")
@@ -27,7 +27,8 @@ class ProductoController extends Controller
 
         return Inertia::render('Productos/Index', [
             'productos' => $query->paginate(10)->withQueryString(),
-            'tipos' => Tipo::all(),
+            'tipos' => Tipo::select('id', 'nombre')->get(),
+            'insumos' => \App\Models\Insumo::select('id', 'nombre')->get(),
             'filters' => $request->only(['search'])
         ]);
     }
@@ -100,5 +101,17 @@ class ProductoController extends Controller
         $producto->delete();
         
         return redirect()->back()->with('success', 'Producto eliminado exitosamente.');
+    }
+
+    public function updateInsumos(Request $request, Producto $producto)
+    {
+        $request->validate([
+            'insumos' => 'array',
+            'insumos.*' => 'exists:insumos,id'
+        ]);
+
+        $producto->insumos()->sync($request->input('insumos', []));
+
+        return redirect()->back()->with('success', 'Insumos asociados exitosamente al producto.');
     }
 }

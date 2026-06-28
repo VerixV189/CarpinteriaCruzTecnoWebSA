@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -88,4 +90,530 @@ html {
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* ==========================================
+   SISTEMA DE PERSONALIZACIÓN Y ACCESIBILIDAD
+   ========================================== */
+
+/* --- TEMA NIÑOS --- */
+.theme-ninos {
+    font-family: 'Fredoka', sans-serif !important;
+    --radius: 1.5rem !important;
+    --foreground: 222 47% 11% !important;
+    --muted-foreground: 222 47% 20% !important;
+}
+html:not(.dark).theme-ninos h1, 
+html:not(.dark).theme-ninos h2, 
+html:not(.dark).theme-ninos h3, 
+html:not(.dark).theme-ninos h4, 
+html:not(.dark).theme-ninos p, 
+html:not(.dark).theme-ninos span, 
+html:not(.dark).theme-ninos label, 
+html:not(.dark).theme-ninos a:not(.bg-stone-900):not(.bg-stone-950):not(.bg-primary),
+html:not(.dark).theme-ninos button:not(.bg-stone-900):not(.bg-stone-950):not(.bg-primary),
+html:not(.dark).theme-ninos div:not(.bg-stone-900):not(.bg-stone-950):not(.bg-primary) {
+    color: #000000 !important; /* Texto negro absoluto en modo claro para legibilidad extrema */
+    font-weight: 800 !important;
+}
+.dark.theme-ninos,
+.dark.theme-ninos *,
+.dark.theme-ninos input::placeholder,
+.dark.theme-ninos textarea::placeholder {
+    color: #ffffff !important; /* Fuerza tipografía blanca absoluta en modo oscuro para todos los elementos */
+    font-weight: 800 !important;
+}
+.dark.theme-ninos input::placeholder,
+.dark.theme-ninos textarea::placeholder {
+    opacity: 0.65 !important;
+}
+/* Quitar fondos negros de botones en el tema Niños y usar el color primario dinámico */
+.theme-ninos .bg-stone-900,
+.theme-ninos .bg-stone-950,
+.theme-ninos .bg-zinc-900,
+.theme-ninos .bg-primary,
+.theme-ninos button.bg-stone-900,
+.theme-ninos button.bg-stone-950 {
+    background-color: hsl(var(--primary)) !important;
+    border-color: hsl(var(--border)) !important;
+    color: #ffffff !important; /* Fuerza tipografía blanca sobre color primario */
+}
+
+.theme-ninos .bg-stone-900 *,
+.theme-ninos .bg-stone-950 *,
+.theme-ninos .bg-zinc-900 *,
+.theme-ninos .bg-primary *,
+.theme-ninos button.bg-stone-900 *,
+.theme-ninos button.bg-stone-950 * {
+    color: #ffffff !important;
+}
+
+/* Forzar fondos correctos en modo oscuro para Niños (Remover blanco residual) */
+.dark.theme-ninos .bg-white,
+.dark.theme-ninos .dark\:bg-white,
+.dark.theme-ninos button,
+.dark.theme-ninos input,
+.dark.theme-ninos select,
+.dark.theme-ninos textarea,
+.dark.theme-ninos .bg-stone-50,
+.dark.theme-ninos .bg-stone-100,
+.dark.theme-ninos .bg-green-50,
+.dark.theme-ninos .bg-green-100,
+.dark.theme-ninos .bg-amber-50,
+.dark.theme-ninos .bg-amber-100 {
+    background-color: hsl(var(--card)) !important;
+    border-color: hsl(var(--border)) !important;
+    color: #ffffff !important;
+}
+
+/* Forzar que botones primarios de acción que usan bg-white en dark mode de Tailwind usen el color primario activo del tema */
+.dark .dark\:bg-white,
+.dark .bg-zinc-900,
+.dark .bg-stone-900 {
+    background-color: hsl(var(--primary)) !important;
+    border-color: hsl(var(--primary)) !important;
+    color: #ffffff !important;
+}
+
+.dark .dark\:bg-white *,
+.dark .bg-zinc-900 *,
+.dark .bg-stone-900 * {
+    color: #ffffff !important;
+}
+
+.dark.theme-ninos .bg-white *,
+.dark.theme-ninos button *,
+.dark.theme-ninos input *,
+.dark.theme-ninos select *,
+.dark.theme-ninos textarea *,
+.dark.theme-ninos .bg-stone-50 *,
+.dark.theme-ninos .bg-stone-100 *,
+.dark.theme-ninos .bg-green-50 *,
+.dark.theme-ninos .bg-green-100 *,
+.dark.theme-ninos .bg-amber-50 *,
+.dark.theme-ninos .bg-amber-100 * {
+    color: #ffffff !important;
+}
+
+.dark.theme-ninos table a,
+.dark.theme-ninos table Link,
+.dark.theme-ninos table td a {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+
+.theme-ninos button, 
+.theme-ninos .rounded-xl, 
+.theme-ninos .rounded-lg,
+.theme-ninos .rounded-md,
+.theme-ninos input,
+.theme-ninos textarea,
+.theme-ninos select,
+.theme-ninos .border {
+    border-radius: 1.5rem !important;
+    border-style: double !important;
+    border-width: 4px !important;
+}
+/* Patrón de lunares juguetón para Niños */
+.theme-ninos body {
+    background-image: radial-gradient(rgba(0,0,0,0.04) 2px, transparent 0) !important;
+    background-size: 24px 24px !important;
+}
+.dark.theme-ninos body {
+    background-image: radial-gradient(rgba(255,255,255,0.03) 2px, transparent 0) !important;
+    background-size: 24px 24px !important;
+}
+
+
+
+/* Colores Niños (Súper fuertes, primarios, sólidos y chillosos) */
+.color-ninos-celeste {
+    --primary: 200 100% 40% !important; /* Azul primario puro */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 195 100% 50% !important; /* Celeste/Cian puro (#00ffff / #00d2ff) */
+    --card: 195 100% 75% !important;
+    --sidebar-background: 195 100% 40% !important;
+    --border: 195 100% 30% !important;
+}
+.dark .color-ninos-celeste, .dark.color-ninos-celeste {
+    --primary: 195 100% 50% !important;
+    --primary-foreground: 0 0% 100% !important;
+    --background: 195 100% 12% !important;
+    --card: 195 100% 18% !important;
+    --sidebar-background: 195 100% 10% !important;
+    --border: 195 100% 25% !important;
+}
+
+.color-ninos-rosa {
+    --primary: 320 100% 40% !important; /* Rosa/Rojo fucsia primario puro */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 320 100% 50% !important; /* Magenta/Rosa puro (#ff00ff / #ff007f) */
+    --card: 320 100% 75% !important;
+    --sidebar-background: 320 100% 42% !important;
+    --border: 320 100% 30% !important;
+}
+.dark .color-ninos-rosa, .dark.color-ninos-rosa {
+    --primary: 320 100% 50% !important;
+    --primary-foreground: 0 0% 100% !important;
+    --background: 320 100% 12% !important;
+    --card: 320 100% 18% !important;
+    --sidebar-background: 320 100% 10% !important;
+    --border: 320 100% 25% !important;
+}
+
+.color-ninos-amarillo {
+    --primary: 55 100% 25% !important; /* Amarillo oscuro para contraste legible en texto */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 60 100% 50% !important; /* Amarillo puro (#ffff00) */
+    --card: 60 100% 75% !important;
+    --sidebar-background: 60 100% 40% !important;
+    --border: 60 100% 28% !important;
+}
+.dark .color-ninos-amarillo, .dark.color-ninos-amarillo {
+    --primary: 60 100% 50% !important;
+    --primary-foreground: 0 0% 100% !important;
+    --background: 60 100% 10% !important;
+    --card: 60 100% 15% !important;
+    --sidebar-background: 60 100% 8% !important;
+    --border: 60 100% 22% !important;
+}
+
+.color-ninos-verde {
+    --primary: 120 100% 30% !important; /* Verde primario puro */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 120 100% 50% !important; /* Verde puro (#00ff00) */
+    --card: 120 100% 75% !important;
+    --sidebar-background: 120 100% 40% !important;
+    --border: 120 100% 28% !important;
+}
+.dark .color-ninos-verde, .dark.color-ninos-verde {
+    --primary: 120 100% 50% !important;
+    --primary-foreground: 0 0% 100% !important;
+    --background: 120 100% 10% !important;
+    --card: 120 100% 15% !important;
+    --sidebar-background: 120 100% 8% !important;
+    --border: 120 100% 22% !important;
+}
+
+/* Degradados para el fondo y botones del Tema Niños */
+.color-ninos-celeste,
+.color-ninos-celeste body,
+.color-ninos-celeste .bg-background,
+.color-ninos-celeste .bg-muted {
+    background-image: linear-gradient(135deg, hsl(195, 100%, 50%), hsl(220, 100%, 55%)) !important;
+}
+.dark.color-ninos-celeste,
+.dark.color-ninos-celeste body,
+.dark .color-ninos-celeste body,
+.dark.color-ninos-celeste .bg-background,
+.dark .color-ninos-celeste .bg-background,
+.dark.color-ninos-celeste .bg-muted,
+.dark .color-ninos-celeste .bg-muted {
+    background-image: linear-gradient(135deg, hsl(195, 100%, 12%), hsl(220, 100%, 15%)) !important;
+}
+.color-ninos-celeste .bg-primary,
+.color-ninos-celeste button.bg-stone-900,
+.color-ninos-celeste button.bg-stone-950,
+.color-ninos-celeste .bg-stone-900,
+.color-ninos-celeste .bg-zinc-900 {
+    background-image: linear-gradient(135deg, hsl(195, 100%, 40%), hsl(220, 100%, 45%)) !important;
+}
+
+.color-ninos-rosa,
+.color-ninos-rosa body,
+.color-ninos-rosa .bg-background,
+.color-ninos-rosa .bg-muted {
+    background-image: linear-gradient(135deg, hsl(320, 100%, 50%), hsl(345, 100%, 55%)) !important;
+}
+.dark.color-ninos-rosa,
+.dark.color-ninos-rosa body,
+.dark .color-ninos-rosa body,
+.dark.color-ninos-rosa .bg-background,
+.dark .color-ninos-rosa .bg-background,
+.dark.color-ninos-rosa .bg-muted,
+.dark .color-ninos-rosa .bg-muted {
+    background-image: linear-gradient(135deg, hsl(320, 100%, 12%), hsl(345, 100%, 15%)) !important;
+}
+.color-ninos-rosa .bg-primary,
+.color-ninos-rosa button.bg-stone-900,
+.color-ninos-rosa button.bg-stone-950,
+.color-ninos-rosa .bg-stone-900,
+.color-ninos-rosa .bg-zinc-900 {
+    background-image: linear-gradient(135deg, hsl(320, 100%, 40%), hsl(345, 100%, 45%)) !important;
+}
+
+.color-ninos-amarillo,
+.color-ninos-amarillo body,
+.color-ninos-amarillo .bg-background,
+.color-ninos-amarillo .bg-muted {
+    background-image: linear-gradient(135deg, hsl(60, 100%, 50%), hsl(45, 100%, 55%)) !important;
+}
+.dark.color-ninos-amarillo,
+.dark.color-ninos-amarillo body,
+.dark .color-ninos-amarillo body,
+.dark.color-ninos-amarillo .bg-background,
+.dark .color-ninos-amarillo .bg-background,
+.dark.color-ninos-amarillo .bg-muted,
+.dark .color-ninos-amarillo .bg-muted {
+    background-image: linear-gradient(135deg, hsl(60, 100%, 10%), hsl(45, 100%, 12%)) !important;
+}
+.color-ninos-amarillo .bg-primary,
+.color-ninos-amarillo button.bg-stone-900,
+.color-ninos-amarillo button.bg-stone-950,
+.color-ninos-amarillo .bg-stone-900,
+.color-ninos-amarillo .bg-zinc-900 {
+    background-image: linear-gradient(135deg, hsl(60, 100%, 35%), hsl(45, 100%, 40%)) !important;
+}
+
+.color-ninos-verde,
+.color-ninos-verde body,
+.color-ninos-verde .bg-background,
+.color-ninos-verde .bg-muted {
+    background-image: linear-gradient(135deg, hsl(120, 100%, 50%), hsl(145, 100%, 55%)) !important;
+}
+.dark.color-ninos-verde,
+.dark.color-ninos-verde body,
+.dark .color-ninos-verde body,
+.dark.color-ninos-verde .bg-background,
+.dark .color-ninos-verde .bg-background,
+.dark.color-ninos-verde .bg-muted,
+.dark .color-ninos-verde .bg-muted {
+    background-image: linear-gradient(135deg, hsl(120, 100%, 10%), hsl(145, 100%, 12%)) !important;
+}
+.color-ninos-verde .bg-primary,
+.color-ninos-verde button.bg-stone-900,
+.color-ninos-verde button.bg-stone-950,
+.color-ninos-verde .bg-stone-900,
+.color-ninos-verde .bg-zinc-900 {
+    background-image: linear-gradient(135deg, hsl(120, 100%, 30%), hsl(145, 100%, 35%)) !important;
+}
+
+
+/* --- TEMA JÓVENES --- */
+.theme-jovenes {
+    font-family: 'Outfit', sans-serif !important;
+    --radius: 0.5rem !important;
+}
+.theme-jovenes button, 
+.theme-jovenes .rounded-xl, 
+.theme-jovenes .rounded-lg,
+.theme-jovenes .rounded-md,
+.theme-jovenes input,
+.theme-jovenes textarea,
+.theme-jovenes select {
+    border-radius: 0.5rem !important;
+}
+/* Patrón de cuadrícula digital para Jóvenes */
+.theme-jovenes body {
+    background-image: linear-gradient(rgba(0,0,0,0.015) 1px, transparent 0), linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 0);
+    background-size: 25px 25px;
+}
+.dark.theme-jovenes body {
+    background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 0), linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 0);
+    background-size: 25px 25px;
+}
+
+/* Colores Jóvenes (Tonos Pastel Suaves) */
+.color-jovenes-morado {
+    --primary: 285 50% 45% !important; /* Morado/Lavanda principal */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 285 45% 90% !important; /* Lavanda Pastel Suave */
+    --card: 285 45% 96% !important;
+    --sidebar-background: 285 35% 88% !important;
+    --border: 285 30% 82% !important;
+}
+.dark .color-jovenes-morado, .dark.color-jovenes-morado {
+    --background: 285 30% 15% !important;
+    --card: 285 25% 20% !important;
+    --sidebar-background: 285 25% 12% !important;
+    --border: 285 20% 30% !important;
+}
+
+.color-jovenes-verde {
+    --primary: 90 45% 40% !important; /* Verde principal */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 90 40% 90% !important; /* Verde Pastel Suave */
+    --card: 90 40% 96% !important;
+    --sidebar-background: 90 30% 88% !important;
+    --border: 90 30% 82% !important;
+}
+.dark .color-jovenes-verde, .dark.color-jovenes-verde {
+    --background: 90 25% 15% !important;
+    --card: 90 20% 20% !important;
+    --sidebar-background: 90 20% 12% !important;
+    --border: 90 15% 28% !important;
+}
+
+.color-jovenes-azul {
+    --primary: 195 50% 42% !important; /* Azul principal */
+    --primary-foreground: 0 0% 100% !important;
+    --background: 195 50% 90% !important; /* Azul Celeste Pastel Suave */
+    --card: 195 50% 96% !important;
+    --sidebar-background: 195 35% 88% !important;
+    --border: 195 30% 82% !important;
+}
+.dark .color-jovenes-azul, .dark.color-jovenes-azul {
+    --background: 195 30% 15% !important;
+    --card: 195 25% 20% !important;
+    --sidebar-background: 195 25% 12% !important;
+    --border: 195 20% 30% !important;
+}
+
+.color-jovenes-rosa {
+    --primary: 340 50% 45% !important;
+    --primary-foreground: 0 0% 100% !important;
+    --background: 340 50% 90% !important; /* Rosa Pastel Suave */
+    --card: 340 50% 96% !important;
+    --sidebar-background: 340 35% 88% !important;
+    --border: 340 30% 82% !important;
+}
+.dark .color-jovenes-rosa, .dark.color-jovenes-rosa {
+    --background: 340 30% 15% !important;
+    --card: 340 25% 20% !important;
+    --sidebar-background: 340 25% 12% !important;
+    --border: 340 20% 30% !important;
+}
+
+.color-jovenes-naranja {
+    --primary: 30 50% 42% !important;
+    --primary-foreground: 0 0% 100% !important;
+    --background: 30 50% 90% !important; /* Naranja Pastel Suave */
+    --card: 30 50% 96% !important;
+    --sidebar-background: 30 35% 88% !important;
+    --border: 30 30% 82% !important;
+}
+.dark .color-jovenes-naranja, .dark.color-jovenes-naranja {
+    --background: 30 30% 15% !important;
+    --card: 30 25% 20% !important;
+    --sidebar-background: 30 25% 12% !important;
+    --border: 30 20% 30% !important;
+}
+
+
+/* --- TEMA ADULTOS --- */
+.theme-adultos {
+    font-family: 'Lora', serif !important;
+    --radius: 0rem !important;
+}
+.theme-adultos button, 
+.theme-adultos .rounded-xl, 
+.theme-adultos .rounded-lg,
+.theme-adultos .rounded-md,
+.theme-adultos input,
+.theme-adultos textarea,
+.theme-adultos select {
+    border-radius: 0px !important;
+}
+/* Fondo liso y pulcro para Adultos */
+.theme-adultos body {
+    background-image: none !important;
+}
+
+/* Forzar que los elementos activos y en hover del Sidebar usen el color del tema en Modo Adulto */
+.theme-adultos [data-active=true] {
+    background-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+}
+.theme-adultos [data-active=true] *,
+.theme-adultos [data-active=true] svg {
+    color: hsl(var(--primary-foreground)) !important;
+}
+
+.theme-adultos [data-sidebar=menu-button]:hover,
+.theme-adultos [data-active=false]:hover,
+.theme-adultos a:hover {
+    background-color: hsl(var(--primary) / 0.1) !important;
+}
+.theme-adultos [data-sidebar=menu-button]:hover *,
+.theme-adultos [data-active=false]:hover *,
+.theme-adultos a:hover * {
+    color: hsl(var(--primary)) !important;
+}
+
+/* Colores Adultos */
+.color-adultos-caoba {
+    --primary: 24 60% 30% !important; /* Madera Caoba */
+    --primary-foreground: 0 0% 98% !important;
+}
+.color-adultos-bosque {
+    --primary: 162 45% 20% !important; /* Verde Bosque */
+    --primary-foreground: 0 0% 98% !important;
+}
+.color-adultos-marino {
+    --primary: 221 45% 25% !important; /* Azul Marino */
+    --primary-foreground: 0 0% 98% !important;
+}
+.color-adultos-ceniza {
+    --primary: 215 15% 40% !important; /* Gris Ceniza */
+    --primary-foreground: 0 0% 98% !important;
+}
+.color-adultos-vino {
+    --primary: 345 60% 25% !important; /* Rojo Vino */
+    --primary-foreground: 0 0% 98% !important;
+}
+
+
+/* 2. Accesibilidad: Tamaños de letra */
+.font-size-grande {
+    font-size: 1.15rem !important;
+}
+.font-size-grande h1 { font-size: 2.25rem !important; }
+.font-size-grande h2 { font-size: 1.75rem !important; }
+.font-size-grande h3 { font-size: 1.5rem !important; }
+.font-size-grande p, .font-size-grande span, .font-size-grande td, .font-size-grande th, .font-size-grande button, .font-size-grande a, .font-size-grande label, .font-size-grande input {
+    font-size: 1.05rem !important;
+}
+
+.font-size-muy-grande {
+    font-size: 1.3rem !important;
+}
+.font-size-muy-grande h1 { font-size: 2.5rem !important; }
+.font-size-muy-grande h2 { font-size: 2rem !important; }
+.font-size-muy-grande h3 { font-size: 1.75rem !important; }
+.font-size-muy-grande p, .font-size-muy-grande span, .font-size-muy-grande td, .font-size-muy-grande th, .font-size-muy-grande button, .font-size-muy-grande a, .font-size-muy-grande label, .font-size-muy-grande input {
+    font-size: 1.2rem !important;
+}
+
+
+/* 3. Accesibilidad: Contraste Alto */
+.contrast-alto {
+    filter: contrast(1.15) saturate(1.1) !important;
+    --background: 0 0% 100% !important;
+    --foreground: 0 0% 0% !important;
+    --border: 0 0% 0% !important;
+    --card: 0 0% 100% !important;
+    --card-foreground: 0 0% 0% !important;
+    --sidebar-background: 0 0% 100% !important;
+    --sidebar-foreground: 0 0% 0% !important;
+    --sidebar-border: 0 0% 0% !important;
+}
+
+.dark.contrast-alto {
+    --background: 0 0% 0% !important;
+    --foreground: 0 0% 100% !important;
+    --border: 0 0% 100% !important;
+    --card: 0 0% 0% !important;
+    --card-foreground: 0 0% 100% !important;
+    --sidebar-background: 0 0% 0% !important;
+    --sidebar-foreground: 0 0% 100% !important;
+    --sidebar-border: 0 0% 100% !important;
+}
+
+/* Soporte para clases stone-850 personalizadas en modo oscuro en toda la plataforma */
+.dark .dark\:bg-stone-850,
+.dark .bg-stone-850,
+.dark.dark\:bg-stone-850 {
+    background-color: #1c1917 !important; /* HSL 20 6% 10% (intermedio entre 800 y 900) */
+}
+
+.dark .dark\:border-stone-850,
+.dark .border-stone-850,
+.dark.dark\:border-stone-850 {
+    border-color: #292524 !important;
+}
+
+.dark .dark\:hover\:bg-stone-850:hover,
+.dark .hover\:bg-stone-850:hover,
+.dark.dark\:hover\:bg-stone-850:hover {
+    background-color: #292524 !important;
 }

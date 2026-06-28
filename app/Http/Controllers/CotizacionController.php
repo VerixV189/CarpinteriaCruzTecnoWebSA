@@ -66,6 +66,9 @@ class CotizacionController extends Controller
         $this->verificarPermiso('REGCOT');
 
         $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Debes iniciar sesión.');
+        }
         
         if ($user->rol_id !== 2 || !$user->cliente) {
             abort(403, 'Solo los clientes registrados pueden solicitar cotizaciones.');
@@ -80,17 +83,22 @@ class CotizacionController extends Controller
         $this->verificarPermiso('REGCOT');
 
         $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Debes iniciar sesión.');
+        }
         
         if ($user->rol_id !== 2 || !$user->cliente) {
             abort(403, 'Solo los clientes registrados pueden solicitar cotizaciones.');
         }
+
+        $clienteId = $user->cliente->id;
 
         $request->validate([
             'descripcion' => 'required|string',
         ]);
 
         Cotizacion::create([
-            'cliente_id' => $user->cliente->id,
+            'cliente_id' => $clienteId,
             'descripcion' => $request->descripcion,
             'estado' => 'Pendiente',
         ]);
@@ -126,8 +134,24 @@ class CotizacionController extends Controller
 
         $user = Auth::user();
 
-        if ($user->rol_id !== 3 || !$user->carpintero) {
-            abort(403, 'Solo los carpinteros pueden presupuestar.');
+        $carpinteroId = null;
+        if ($user->rol_id === 3 && $user->carpintero) {
+            $carpinteroId = $user->carpintero->id;
+        } elseif ($user->rol_id === 1) {
+            $carpintero = \App\Models\Carpintero::where('usuario_id', $user->id)->first();
+            if (!$carpintero) {
+                $carpintero = \App\Models\Carpintero::first();
+            }
+            if (!$carpintero) {
+                $carpintero = \App\Models\Carpintero::create([
+                    'usuario_id' => $user->id,
+                    'especialidad' => 'Administrador Propietario',
+                    'costo_hora' => 50.00
+                ]);
+            }
+            $carpinteroId = $carpintero->id;
+        } else {
+            abort(403, 'Solo los carpinteros y administradores pueden presupuestar.');
         }
 
         $request->validate([
@@ -137,17 +161,29 @@ class CotizacionController extends Controller
 
         DetalleCotizacion::create([
             'cotizacion_id' => $cotizacion->id,
-            'carpintero_id' => $user->carpintero->id,
+            'carpintero_id' => $carpinteroId,
             'descripcion' => $request->descripcion,
             'precio' => $request->precio,
         ]);
 
-        // Cambiamos el estado a Cotizado automáticamente
+        return redirect()->back()->with('success', 'Detalle agregado a la cotización.');
+    }
+
+    // Envia la cotización de Pendiente a Cotizado para que el cliente la vea y apruebe
+    public function enviarCotizacion(Cotizacion $cotizacion)
+    {
+        $this->verificarPermiso('ACTCOT');
+
+        $user = Auth::user();
+        if ($user->rol_id !== 1 && $user->rol_id !== 3) {
+            abort(403, 'Solo los carpinteros y administradores pueden enviar cotizaciones.');
+        }
+
         if ($cotizacion->estado === 'Pendiente') {
             $cotizacion->update(['estado' => 'Cotizado']);
         }
 
-        return redirect()->back()->with('success', 'Detalle agregado a la cotización.');
+        return redirect()->back()->with('success', 'Cotización enviada al cliente.');
     }
 
     // El cliente aprueba o rechaza desde la vista "Show"

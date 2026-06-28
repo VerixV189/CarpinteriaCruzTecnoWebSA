@@ -5,6 +5,7 @@ import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Usuario {
     id: number;
@@ -61,12 +62,22 @@ const refreshPage = () => {
 };
 
 const page = usePage();
-const currentUserRole = computed(() => page.props.auth.user.rol_id);
+const currentUserRole = computed(() => (page.props as any).auth.user.rol_id);
+
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(`/carpinteros/${pendingDeleteId.value}`, { preserveScroll: true });
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
+    }
+};
 
 const deleteCarpintero = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este carpintero?')) {
-        router.delete(`/carpinteros/${id}`, { preserveScroll: true });
-    }
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
 };
 </script>
 
@@ -149,5 +160,12 @@ const deleteCarpintero = (id: number) => {
                 <Pagination :links="carpinteros.links" />
             </div>
         </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Carpintero"
+            message="¿Estás seguro de eliminar este carpintero? Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>

@@ -81,7 +81,7 @@ class PagoController extends Controller
             'metodo' => 'required|in:QR,Tarjeta'
         ]);
 
-        $baseUrl = 'https://masterqr.pagofacil.com.bo/api/services/v2';
+        $baseUrl = config('services.pagofacil.base_url');
         $tokenService = config('services.pagofacil.token_service');
         $tokenSecret = config('services.pagofacil.secret_token');
         

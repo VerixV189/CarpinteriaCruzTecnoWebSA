@@ -5,6 +5,7 @@ import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2, Eye } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Rol {
     id: number;
@@ -54,12 +55,22 @@ const refreshPage = () => {
 };
 
 const page = usePage();
-const currentUserRole = computed(() => page.props.auth.user.rol_id);
+const currentUserRole = computed(() => (page.props as any).auth.user.rol_id);
+
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(`/roles/${pendingDeleteId.value}`, { preserveScroll: true });
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
+    }
+};
 
 const deleteRole = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este rol? Esta acción no se puede deshacer.')) {
-        router.delete(`/roles/${id}`, { preserveScroll: true });
-    }
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
 };
 </script>
 
@@ -148,5 +159,12 @@ const deleteRole = (id: number) => {
                 <Pagination :links="roles.links" />
             </div>
         </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Rol"
+            message="¿Estás seguro de eliminar este rol? Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>

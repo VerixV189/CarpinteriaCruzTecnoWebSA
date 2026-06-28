@@ -6,6 +6,7 @@ import { ref, watch, computed } from 'vue';
 import axios from 'axios';
 import { RefreshCw, QrCode, CreditCard, Banknote, LoaderCircle, X } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Usuario {
     nombre: string;
@@ -47,7 +48,7 @@ const props = defineProps<{
     filters?: { search?: string };
 }>();
 
-const page = usePage();
+const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -130,12 +131,22 @@ const cerrarModalPago = () => {
 // Formulario de Cobro en Efectivo (Admin/Carpintero)
 const efectivoForm = useForm({});
 
-const cobrarEfectivo = (pago: Pago) => {
-    if (confirm('¿Confirmas que recibiste el pago en efectivo para esta cuota?')) {
-        efectivoForm.put(`/pagos/${pago.id}/efectivo`, {
+const confirmOpen = ref(false);
+const pendingPagoId = ref<number | null>(null);
+
+const confirmCobro = () => {
+    if (pendingPagoId.value !== null) {
+        efectivoForm.put(`/pagos/${pendingPagoId.value}/efectivo`, {
             preserveScroll: true
         });
+        confirmOpen.value = false;
+        pendingPagoId.value = null;
     }
+};
+
+const cobrarEfectivo = (pago: Pago) => {
+    pendingPagoId.value = pago.id;
+    confirmOpen.value = true;
 };
 
 </script>
@@ -152,12 +163,12 @@ const cobrarEfectivo = (pago: Pago) => {
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 py-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 py-4">
                 <input
                     v-model="searchQuery"
                     type="text"
                     placeholder="Buscar por cliente..."
-                    class="flex h-9 w-full max-w-sm rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    class="flex h-9 w-full sm:max-w-sm rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 />
                 <button
                     @click="refreshPage"
@@ -170,13 +181,65 @@ const cobrarEfectivo = (pago: Pago) => {
                 </button>
             </div>
 
-            <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
+            <!-- VISTA DE TARJETAS PARA EL CLIENTE -->
+            <div v-if="currentUserRole === 2" class="space-y-6">
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div v-if="pagos.data.length === 0" class="col-span-full rounded-md border border-stone-200 dark:border-stone-800 bg-card p-12 text-center text-muted-foreground">
+                        No tienes ningún pago registrado actualmente.
+                    </div>
+                    
+                    <div v-for="pago in pagos.data" :key="pago.id" class="rounded-xl border border-stone-200 dark:border-stone-850 bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col justify-between">
+                        <!-- Cabecera de la Tarjeta -->
+                        <div class="p-5 border-b border-stone-100 dark:border-stone-850 flex flex-col sm:flex-row items-start sm:justify-between gap-3 sm:gap-4">
+                            <div class="space-y-1">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500">Recibo de Cuota</span>
+                                <h3 class="text-lg font-bold text-stone-900 dark:text-white">Recibo #REC-{{ pago.id }}</h3>
+                            </div>
+                            <span :class="`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold capitalize shrink-0 self-start ${pago.estado.toLowerCase() === 'pagado' ? 'bg-green-100 text-green-800 dark:bg-green-950/40 dark:text-green-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400'}`">
+                                {{ pago.estado }}
+                            </span>
+                        </div>
+
+                        <!-- Cuerpo de la Tarjeta -->
+                        <div class="p-5 space-y-3 flex-1">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1 sm:gap-4 text-xs">
+                                <span class="text-muted-foreground">Fecha de Vencimiento:</span>
+                                <span class="font-medium text-stone-800 dark:text-stone-200">
+                                    {{ new Date(pago.fecha_vencimiento).toLocaleDateString() }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Pie de la Tarjeta -->
+                        <div class="p-5 border-t border-stone-100 dark:border-stone-850 bg-stone-50/40 dark:bg-stone-900/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div class="text-xs">
+                                <span class="text-muted-foreground">Importe Cuota:</span>
+                                <div class="text-lg font-extrabold text-green-600 dark:text-green-500">Bs. {{ parseFloat(pago.subtotal).toFixed(2) }}</div>
+                            </div>
+                            
+                            <div v-if="pago.estado.toLowerCase() === 'pendiente'" class="w-full sm:w-auto">
+                                <button @click="abrirPagoFacil(pago)" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 px-4 py-2 rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap w-full sm:w-auto">
+                                    <QrCode class="w-4 h-4" />
+                                    Pagar Cuota
+                                </button>
+                            </div>
+                            <span v-else class="text-xs text-muted-foreground italic flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-green-500"></span> Transacción Completada
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <Pagination :links="pagos.links" />
+            </div>
+
+            <!-- VISTA DE TABLA PARA ADMIN Y CARPINTERO -->
+            <div v-else class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow flex flex-col">
                 <div class="relative w-full overflow-auto">
                     <table class="w-full caption-bottom text-sm">
                         <thead class="border-b border-sidebar-border bg-muted/50">
                             <tr class="text-left font-medium text-muted-foreground">
                                 <th class="p-4">Recibo ID</th>
-                                <th v-if="currentUserRole !== 2" class="p-4">Cliente</th>
+                                <th class="p-4">Cliente</th>
                                 <th class="p-4">Monto Transacción</th>
                                 <th class="p-4">Vencimiento</th>
                                 <th class="p-4">Estado</th>
@@ -185,32 +248,25 @@ const cobrarEfectivo = (pago: Pago) => {
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
                             <tr v-if="pagos.data.length === 0">
-                                <td :colspan="currentUserRole !== 2 ? 6 : 5" class="p-4 text-center text-muted-foreground">
+                                <td colspan="6" class="p-4 text-center text-muted-foreground">
                                     No se encontraron pagos registrados.
                                 </td>
                             </tr>
                             <tr v-for="pago in pagos.data" :key="pago.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#REC-{{ pago.id }}</td>
-                                <td v-if="currentUserRole !== 2" class="p-4 font-medium">{{ pago.venta.pedido.cotizacion.cliente.usuario.nombre }} {{ pago.venta.pedido.cotizacion.cliente.usuario.apellido }}</td>
+                                <td class="p-4 font-medium">{{ pago.venta.pedido.cotizacion.cliente.usuario.nombre }} {{ pago.venta.pedido.cotizacion.cliente.usuario.apellido }}</td>
                                 <td class="p-4 font-bold text-green-600 dark:text-green-500">
                                     Bs. {{ parseFloat(pago.subtotal).toFixed(2) }}
                                 </td>
                                 <td class="p-4">{{ new Date(pago.fecha_vencimiento).toLocaleDateString() }}</td>
                                 <td class="p-4">
-                                    <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pago.estado.toLowerCase() === 'pagado' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`">
+                                    <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pago.estado.toLowerCase() === 'pagado' ? 'bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400'}`">
                                         {{ pago.estado }}
                                     </span>
                                 </td>
                                 <td class="p-4 text-right">
                                     <div v-if="pago.estado.toLowerCase() === 'pendiente'" class="flex justify-end gap-2">
-
-                                        <!-- Botón para el Cliente -->
-                                        <button v-if="currentUserRole === 2" @click="abrirPagoFacil(pago)" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white shadow hover:bg-zinc-800 transition-colors">
-                                            <QrCode class="w-3.5 h-3.5 mr-1" /> Pagar Cuota
-                                        </button>
-
-                                        <!-- Botón para Administrador -->
-                                        <button v-if="currentUserRole === 1" @click="cobrarEfectivo(pago)" :disabled="efectivoForm.processing" class="inline-flex items-center justify-center rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm hover:bg-green-100 transition-colors">
+                                        <button v-if="currentUserRole === 1" @click="cobrarEfectivo(pago)" :disabled="efectivoForm.processing" class="inline-flex items-center justify-center rounded-md border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 shadow-sm hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
                                             <Banknote class="w-3.5 h-3.5 mr-1" /> Cobrar en Efectivo
                                         </button>
                                     </div>
@@ -224,6 +280,7 @@ const cobrarEfectivo = (pago: Pago) => {
                 </div>
                 <Pagination :links="pagos.links" />
             </div>
+
         </div>
 
         <!-- MODAL DE PAGO FÁCIL -->
@@ -297,5 +354,13 @@ const cobrarEfectivo = (pago: Pago) => {
             </div>
         </div>
 
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Confirmar Cobro"
+            message="¿Confirmas que recibiste el pago en efectivo para esta cuota? El estado cambiará a Pagado y no se podrá revertir fácilmente."
+            confirmLabel="Confirmar Pago"
+            variant="info"
+            @confirm="confirmCobro"
+        />
     </AppLayout>
 </template>

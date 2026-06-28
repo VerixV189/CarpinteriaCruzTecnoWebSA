@@ -5,6 +5,7 @@ import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Permiso {
     id: number;
@@ -55,10 +56,20 @@ const refreshPage = () => {
 const page = usePage();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
-const deletePermiso = (id: number) => {
-    if (confirm('¿Estás seguro de eliminar este permiso? Puede afectar el sistema.')) {
-        router.delete(`/permisos/${id}`, { preserveScroll: true });
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(`/permisos/${pendingDeleteId.value}`, { preserveScroll: true });
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
     }
+};
+
+const deletePermiso = (id: number) => {
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
 };
 </script>
 
@@ -141,5 +152,12 @@ const deletePermiso = (id: number) => {
                 <Pagination :links="permisos.links" />
             </div>
         </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Permiso"
+            message="¿Estás seguro de eliminar este permiso? Puede afectar el sistema. Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>

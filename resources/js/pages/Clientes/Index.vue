@@ -5,6 +5,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 
 interface Usuario {
     id: number;
@@ -68,10 +69,20 @@ const refreshPage = () => {
     });
 };
 
-const deleteCliente = (id: number) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
-        router.delete(route('clientes.destroy', { cliente: id }));
+const confirmOpen = ref(false);
+const pendingDeleteId = ref<number | null>(null);
+
+const confirmDelete = () => {
+    if (pendingDeleteId.value !== null) {
+        router.delete(route('clientes.destroy', { cliente: pendingDeleteId.value }));
+        confirmOpen.value = false;
+        pendingDeleteId.value = null;
     }
+};
+
+const deleteCliente = (id: number) => {
+    pendingDeleteId.value = id;
+    confirmOpen.value = true;
 };
 </script>
 
@@ -161,5 +172,12 @@ const deleteCliente = (id: number) => {
                 <Pagination :links="clientes.links" />
             </div>
         </div>
+        
+        <ConfirmDialog 
+            v-model:open="confirmOpen" 
+            title="Eliminar Cliente"
+            message="¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer."
+            @confirm="confirmDelete"
+        />
     </AppLayout>
 </template>
