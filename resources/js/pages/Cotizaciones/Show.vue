@@ -126,8 +126,8 @@ const confirmarAprobacion = () => {
                 </div>
             </div>
 
-            <!-- ACCIONES CARPINTERO (Agregar Detalle) -->
-            <div v-if="currentUserRole === 3 && ((cotizacion.estado || '').toLowerCase() === 'pendiente' || (cotizacion.estado || '').toLowerCase() === 'cotizado')" class="rounded-md border border-sidebar-border bg-card shadow p-6">
+            <!-- ACCIONES CARPINTERO / ADMIN (Agregar Detalle) -->
+            <div v-if="(currentUserRole === 3 || currentUserRole === 1) && ((cotizacion.estado || '').toLowerCase() === 'pendiente' || (cotizacion.estado || '').toLowerCase() === 'cotizado')" class="rounded-md border border-sidebar-border bg-card shadow p-6">
                 <h3 class="text-md font-semibold mb-4">Agregar Item al Presupuesto</h3>
                 <form @submit.prevent="submitDetalle" class="flex flex-wrap items-end gap-4">
                     <div class="flex-1 min-w-[200px] space-y-2">

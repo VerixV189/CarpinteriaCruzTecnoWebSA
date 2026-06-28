@@ -124,6 +124,50 @@ const fabricaItems: NavItem[] = [
     },
 ];
 
+import { computed } from 'vue';
+
+const currentUserRole = computed(() => page.props.auth.user?.rol_id);
+
+const filteredNegociosItems = computed(() => {
+    const roleId = currentUserRole.value;
+    return negociosItems.filter(item => {
+        // Admin ve todo
+        if (roleId === 1) return true;
+        
+        // Cliente (2)
+        if (roleId === 2) {
+            return ['Marketplace', 'Cotizaciones', 'Ventas', 'Pagos'].includes(item.title);
+        }
+        
+        // Carpintero (3)
+        if (roleId === 3) {
+            return ['Dashboard', 'Cotizaciones'].includes(item.title);
+        }
+        
+        return false;
+    });
+});
+
+const filteredFabricaItems = computed(() => {
+    const roleId = currentUserRole.value;
+    return fabricaItems.filter(item => {
+        // Admin ve todo
+        if (roleId === 1) return true;
+        
+        // Cliente (2)
+        if (roleId === 2) {
+            return ['Pedidos'].includes(item.title);
+        }
+        
+        // Carpintero (3)
+        if (roleId === 3) {
+            return ['Insumos', 'Productos', 'Tipos de Mueble', 'Pedidos', 'Proveedores'].includes(item.title);
+        }
+        
+        return false;
+    });
+});
+
 </script>
 
 <template>
@@ -156,8 +200,8 @@ const fabricaItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent class="space-y-4">
-            <NavMain title="Negocios y Control" :items="negociosItems" />
-            <NavMain title="Paquete Fábrica" :items="fabricaItems" />
+            <NavMain v-if="filteredNegociosItems.length > 0" title="Negocios y Control" :items="filteredNegociosItems" />
+            <NavMain v-if="filteredFabricaItems.length > 0" title="Paquete Fábrica" :items="filteredFabricaItems" />
         </SidebarContent>
 
         <SidebarFooter class="p-4 border-t border-sidebar-border/50 flex justify-center group-data-[collapsible=icon]:hidden">

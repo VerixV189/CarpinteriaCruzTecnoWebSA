@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import axios from 'axios';
 import { RefreshCw, QrCode, CreditCard, Banknote, LoaderCircle, X } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
@@ -97,22 +97,22 @@ const qrImageBase64 = ref<string | null>(null);
 
 const procesarPagoFacil = async () => {
     if (!pagoSeleccionado.value) return;
-    
+
     isProcessingPagoFacil.value = true;
     qrImageBase64.value = null; // Reiniciar QR anterior
-    
+
     try {
         const response = await axios.post(`/pagos/${pagoSeleccionado.value.id}/pagofacil`, {
             metodo: pagoFacilForm.metodo
         });
-        
+
         // Guardamos la imagen QR devuelta por la API Directa
         if (response.data.qrBase64) {
             qrImageBase64.value = response.data.qrBase64;
         } else {
             throw new Error("No se recibió la imagen QR");
         }
-        
+
     } catch (error) {
         console.error("Error al generar QR de Pago Fácil", error);
         alert("Ocurrió un error al contactar con la API de Pago Fácil.");
@@ -203,14 +203,14 @@ const cobrarEfectivo = (pago: Pago) => {
                                 </td>
                                 <td class="p-4 text-right">
                                     <div v-if="pago.estado.toLowerCase() === 'pendiente'" class="flex justify-end gap-2">
-                                        
+
                                         <!-- Botón para el Cliente -->
                                         <button v-if="currentUserRole === 2" @click="abrirPagoFacil(pago)" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white shadow hover:bg-zinc-800 transition-colors">
                                             <QrCode class="w-3.5 h-3.5 mr-1" /> Pagar Cuota
                                         </button>
 
-                                        <!-- Botón para Administrador / Carpintero -->
-                                        <button v-if="currentUserRole !== 2" @click="cobrarEfectivo(pago)" :disabled="efectivoForm.processing" class="inline-flex items-center justify-center rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm hover:bg-green-100 transition-colors">
+                                        <!-- Botón para Administrador -->
+                                        <button v-if="currentUserRole === 1" @click="cobrarEfectivo(pago)" :disabled="efectivoForm.processing" class="inline-flex items-center justify-center rounded-md border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm hover:bg-green-100 transition-colors">
                                             <Banknote class="w-3.5 h-3.5 mr-1" /> Cobrar en Efectivo
                                         </button>
                                     </div>
@@ -249,7 +249,7 @@ const cobrarEfectivo = (pago: Pago) => {
                     </h3>
                     <div class="mt-4 text-sm text-muted-foreground space-y-4">
                         <p v-if="!qrImageBase64">
-                            Estás a punto de iniciar el pago para la cuota 
+                            Estás a punto de iniciar el pago para la cuota
                             <strong class="text-foreground">Recibo #{{ pagoSeleccionado?.id }}</strong>.
                             Por favor confirma el método de pago que utilizarás en la plataforma.
                         </p>
@@ -265,7 +265,7 @@ const cobrarEfectivo = (pago: Pago) => {
                                 Puedes cerrar esta ventana.
                             </p>
                         </div>
-                        
+
                         <!-- Formulario de selección (Solo se muestra si aún no hay QR) -->
                         <form v-else @submit.prevent="procesarPagoFacil" class="space-y-4">
                             <div class="grid gap-2">

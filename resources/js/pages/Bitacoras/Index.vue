@@ -122,7 +122,7 @@ const refreshPage = () => {
                                     <span v-else class="text-muted-foreground italic">Sistema</span>
                                 </td>
                                 <td class="p-4">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider bg-stone-100 dark:bg-stone-850">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold uppercase tracking-wider bg-stone-100 text-stone-800 ring-1 ring-inset ring-stone-500/20 dark:bg-stone-800 dark:text-stone-300 dark:ring-stone-700/50">
                                         {{ bitacora.accion }}
                                     </span>
                                 </td>

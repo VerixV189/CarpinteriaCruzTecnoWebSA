@@ -11,13 +11,26 @@ Route::get('/', function () {
 Route::post('pagos/callback', [App\Http\Controllers\PagoController::class, 'callbackPagoFacil'])->name('pagos.callback');
 
 Route::get('dashboard', function () {
+    $user = Illuminate\Support\Facades\Auth::user();
+    // 1: Propietario, 3: Carpintero. Si es cliente (2) u otro, redirigir al marketplace
+    if ($user && !in_array($user->rol_id, [1, 3])) {
+        return redirect()->route('marketplace.index');
+    }
+
     return Inertia::render('Dashboard', [
         'stats' => [
             'clientes' => App\Models\Cliente::count(),
             'productos' => App\Models\Producto::count(),
             'pedidos' => App\Models\Pedido::count(),
             'ingresos' => floatval(App\Models\Venta::sum('total_costo') ?? 0),
-        ]
+        ],
+        'recursos_populares' => App\Models\Bitacora::select('modelo_tipo', Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->whereNotNull('modelo_tipo')
+            ->where('modelo_tipo', '!=', 'Auth')
+            ->groupBy('modelo_tipo')
+            ->orderByDesc('total')
+            ->limit(5)
+            ->get()
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 

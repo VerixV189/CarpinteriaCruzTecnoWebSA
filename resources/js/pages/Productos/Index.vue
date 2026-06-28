@@ -209,7 +209,7 @@ const deleteProducto = (id: number) => {
                                 </td>
                                 <td class="p-4 font-semibold">{{ producto.nombre }}</td>
                                 <td class="p-4">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-800 dark:bg-stone-850 dark:text-stone-300">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/20">
                                         {{ producto.tipo?.nombre || 'N/A' }}
                                     </span>
                                 </td>

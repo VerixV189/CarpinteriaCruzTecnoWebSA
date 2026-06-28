@@ -11,8 +11,14 @@ interface Stats {
     ingresos: number;
 }
 
+interface RecursoPopular {
+    modelo_tipo: string;
+    total: number;
+}
+
 defineProps<{
     stats: Stats;
+    recursos_populares: RecursoPopular[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -141,6 +147,25 @@ const breadcrumbs: BreadcrumbItem[] = [
                             <Users class="h-6 w-6 text-amber-600 dark:text-amber-500" />
                             <span class="text-xs font-medium">Auditoría / Logs</span>
                         </Link>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recursos Más Populares -->
+            <div class="rounded-2xl border border-sidebar-border bg-card p-6 shadow-sm text-card-foreground">
+                <h3 class="font-bold text-stone-900 dark:text-white mb-4">Recursos Más Accedidos (Top 5)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="(recurso, index) in recursos_populares" :key="index" class="flex items-center justify-between p-4 rounded-xl border border-sidebar-border hover:bg-muted/30 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400 font-bold text-sm">
+                                #{{ index + 1 }}
+                            </div>
+                            <span class="text-sm font-semibold">{{ recurso.modelo_tipo }}</span>
+                        </div>
+                        <span class="text-sm font-medium text-muted-foreground">{{ recurso.total }} visitas</span>
+                    </div>
+                    <div v-if="!recursos_populares || recursos_populares.length === 0" class="col-span-full text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
+                        Aún no hay suficientes registros en la bitácora.
                     </div>
                 </div>
             </div>

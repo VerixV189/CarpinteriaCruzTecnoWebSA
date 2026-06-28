@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
-import { RefreshCw } from 'lucide-vue-next';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
+import { ref, watch, computed } from 'vue';
+import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 
 interface Usuario {
@@ -59,6 +59,15 @@ const refreshPage = () => {
         }
     });
 };
+
+const page = usePage();
+const currentUserRole = computed(() => page.props.auth.user.rol_id);
+
+const deleteCarpintero = (id: number) => {
+    if (confirm('¿Estás seguro de eliminar este carpintero?')) {
+        router.delete(`/carpinteros/${id}`, { preserveScroll: true });
+    }
+};
 </script>
 
 <template>
@@ -71,6 +80,13 @@ const refreshPage = () => {
                     <h1 class="text-2xl font-bold text-foreground">Gestión de Carpinteros</h1>
                     <p class="text-sm text-muted-foreground">Listado de carpinteros del taller, especialidad y tarifas.</p>
                 </div>
+                <Link
+                    v-if="currentUserRole === 1"
+                    href="/carpinteros/create"
+                    class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors"
+                >
+                    <Plus class="mr-2 h-4 w-4" /> Nuevo Carpintero
+                </Link>
             </div>
 
             <div class="flex items-center gap-2 py-4">
@@ -100,6 +116,7 @@ const refreshPage = () => {
                                 <th class="p-4">Email</th>
                                 <th class="p-4">Especialidad</th>
                                 <th class="p-4">Costo por Hora</th>
+                                <th class="p-4 text-right" v-if="currentUserRole === 1">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
@@ -114,6 +131,16 @@ const refreshPage = () => {
                                 <td class="p-4">{{ carpintero.especialidad }}</td>
                                 <td class="p-4 font-semibold text-amber-600 dark:text-amber-500">
                                     Bs. {{ parseFloat(carpintero.costo_hora).toFixed(2) }}
+                                </td>
+                                <td class="p-4 text-right" v-if="currentUserRole === 1">
+                                    <div class="flex justify-end gap-2">
+                                        <Link :href="`/carpinteros/${carpintero.id}/edit`" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                                            <Edit class="h-3.5 w-3.5" />
+                                        </Link>
+                                        <button @click="deleteCarpintero(carpintero.id)" class="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-red-100">
+                                            <Trash2 class="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

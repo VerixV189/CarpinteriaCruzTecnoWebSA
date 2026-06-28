@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
-import { RefreshCw } from 'lucide-vue-next';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
+import { ref, watch, computed } from 'vue';
+import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 
 interface Permiso {
@@ -51,6 +51,15 @@ const refreshPage = () => {
         }
     });
 };
+
+const page = usePage();
+const currentUserRole = computed(() => page.props.auth.user.rol_id);
+
+const deletePermiso = (id: number) => {
+    if (confirm('¿Estás seguro de eliminar este permiso? Puede afectar el sistema.')) {
+        router.delete(`/permisos/${id}`, { preserveScroll: true });
+    }
+};
 </script>
 
 <template>
@@ -61,8 +70,15 @@ const refreshPage = () => {
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-2xl font-bold text-foreground">Gestión de Permisos</h1>
-                    <p class="text-sm text-muted-foreground">Listado de accesos y permisos del sistema.</p>
+                    <p class="text-sm text-muted-foreground">Listado de permisos del sistema que pueden ser asignados a los roles.</p>
                 </div>
+                <Link
+                    v-if="currentUserRole === 1"
+                    href="/permisos/create"
+                    class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors"
+                >
+                    <Plus class="mr-2 h-4 w-4" /> Nuevo Permiso
+                </Link>
             </div>
 
             <div class="flex items-center gap-2 py-4">
@@ -89,24 +105,35 @@ const refreshPage = () => {
                         <thead class="border-b border-sidebar-border bg-muted/50">
                             <tr class="text-left font-medium text-muted-foreground">
                                 <th class="p-4">ID</th>
-                                <th class="p-4">Nombre del Permiso</th>
-                                <th class="p-4">Fecha Creación</th>
+                                <th class="p-4">Nombre (Código)</th>
+                                <th class="p-4">Descripción</th>
+                                <th class="p-4 text-right" v-if="currentUserRole === 1">Acciones</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
                             <tr v-if="permisos.data.length === 0">
-                                <td colspan="3" class="p-4 text-center text-muted-foreground">
+                                <td colspan="4" class="p-4 text-center text-muted-foreground">
                                     No se encontraron permisos.
                                 </td>
                             </tr>
                             <tr v-for="permiso in permisos.data" :key="permiso.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#{{ permiso.id }}</td>
-                                <td class="p-4 font-medium">
-                                    <code class="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">
+                                <td class="p-4">
+                                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-400 dark:ring-blue-400/20">
                                         {{ permiso.nombre }}
-                                    </code>
+                                    </span>
                                 </td>
-                                <td class="p-4">{{ new Date(permiso.created_at).toLocaleDateString() }}</td>
+                                <td class="p-4">{{ permiso.descripcion }}</td>
+                                <td class="p-4 text-right" v-if="currentUserRole === 1">
+                                    <div class="flex justify-end gap-2">
+                                        <Link :href="`/permisos/${permiso.id}/edit`" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                                            <Edit class="h-3.5 w-3.5" />
+                                        </Link>
+                                        <button @click="deletePermiso(permiso.id)" class="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-red-100">
+                                            <Trash2 class="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
