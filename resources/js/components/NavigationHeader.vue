@@ -36,7 +36,7 @@ const { getInitials } = useInitials();
                         <div class="space-y-6">
                             <SheetHeader class="flex justify-start text-left border-b border-stone-100 dark:border-stone-800 pb-4">
                                 <div class="flex items-center gap-2">
-                                    <img src="/images/logo.png" alt="Mueblería Cruz Logo" class="h-6 w-6 object-contain rounded-md" />
+                                    <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-6 w-6 object-contain rounded-md" />
                                     <SheetTitle class="text-lg font-bold text-stone-900 dark:text-white">Mueblería Cruz</SheetTitle>
                                 </div>
                             </SheetHeader>
@@ -84,7 +84,7 @@ const { getInitials } = useInitials();
             <!-- Dropdown para cambiar de espacio (solo Admin o Carpintero) -->
             <DropdownMenu v-if="page.props.auth.user && page.props.auth.user.rol?.nombre !== 'Cliente'">
                 <DropdownMenuTrigger class="flex items-center gap-1 sm:gap-2 outline-none select-none cursor-pointer group">
-                    <img src="/images/logo.png" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
+                    <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
                     <span class="text-sm sm:text-xl font-bold tracking-tight text-stone-900 dark:text-white group-hover:text-amber-600 transition-colors leading-tight max-w-[80px] sm:max-w-none whitespace-normal text-left">Mueblería Cruz</span>
                     <ChevronsUpDown class="h-4 w-4 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-200 transition-colors" />
                 </DropdownMenuTrigger>
@@ -104,7 +104,7 @@ const { getInitials } = useInitials();
 
             <!-- Logo y marca estáticos para Clientes e Invitados -->
             <div v-else class="flex items-center gap-1 sm:gap-2 select-none">
-                <img src="/images/logo.png" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
+                <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
                 <span class="text-sm sm:text-xl font-bold tracking-tight text-stone-900 dark:text-white leading-tight max-w-[80px] sm:max-w-none whitespace-normal">Mueblería Cruz</span>
             </div>
         </div>

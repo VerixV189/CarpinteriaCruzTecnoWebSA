@@ -49,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user() ? $request->user()->load('rol') : null,
             ],
             'current_page_visits' => $visit ? $visit->visits : 0,
+            'app_url' => rtrim(config('app.url'), '/'),
         ]);
     }
 }
