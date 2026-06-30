@@ -49,7 +49,7 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($request->password),
                 'telefono' => $request->telefono,
                 'estado' => "activo",
-                'id_rol' => 2,
+                'rol_id' => 2,
             ]);
 
             // Crear el registro del cliente asociado a este nuevo usuario
