@@ -41,47 +41,47 @@ const page = usePage<any>();
 const negociosItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('dashboard') as string,
         icon: LayoutGrid,
     },
     {
         title: 'Cotizaciones',
-        href: '/cotizaciones',
+        href: route('cotizaciones.index') as string,
         icon: FileText,
     },
     {
         title: 'Ventas',
-        href: '/ventas',
+        href: route('ventas.index') as string,
         icon: ShoppingBag,
     },
     {
         title: 'Pagos',
-        href: '/pagos',
+        href: route('pagos.index') as string,
         icon: CreditCard,
     },
     {
         title: 'Clientes',
-        href: '/clientes',
+        href: route('clientes.index') as string,
         icon: Users,
     },
     {
         title: 'Usuarios',
-        href: '/usuarios',
+        href: route('usuarios.index') as string,
         icon: Users,
     },
     {
         title: 'Roles',
-        href: '/roles',
+        href: route('roles.index') as string,
         icon: Shield,
     },
     {
         title: 'Permisos',
-        href: '/permisos',
+        href: route('permisos.index') as string,
         icon: Key,
     },
     {
         title: 'Bitácora',
-        href: '/bitacoras',
+        href: route('bitacoras.index') as string,
         icon: History,
     },
 ];
@@ -89,32 +89,32 @@ const negociosItems: NavItem[] = [
 const fabricaItems: NavItem[] = [
     {
         title: 'Pedidos',
-        href: '/pedidos',
+        href: route('pedidos.index') as string,
         icon: ClipboardList,
     },
     {
         title: 'Productos',
-        href: '/productos',
+        href: route('productos.index') as string,
         icon: Package,
     },
     {
         title: 'Tipos de Mueble',
-        href: '/tipos',
+        href: route('tipos.index') as string,
         icon: Tags,
     },
     {
         title: 'Insumos',
-        href: '/insumos',
+        href: route('insumos.index') as string,
         icon: Boxes,
     },
     {
         title: 'Carpinteros',
-        href: '/carpinteros',
+        href: route('carpinteros.index') as string,
         icon: Hammer,
     },
     {
         title: 'Proveedores',
-        href: '/proveedores',
+        href: route('proveedores.index') as string,
         icon: Truck,
     },
 ];
@@ -122,7 +122,7 @@ const fabricaItems: NavItem[] = [
 const personalItems: NavItem[] = [
     {
         title: 'Mi Perfil',
-        href: '/settings/profile',
+        href: route('profile.edit') as string,
         icon: User,
     }
 ];

@@ -6,6 +6,7 @@ import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+    // base: '/inf513/grupo07sa/proyecto2/public/build/',
     plugins: [
         laravel({
             input: ['resources/js/app.ts'],
