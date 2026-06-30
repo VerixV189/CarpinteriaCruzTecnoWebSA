@@ -48,7 +48,8 @@ interface Pedido {
     fecha_inicio: string;
     fecha_fin_estimada: string;
     estado: string;
-    cotizacion: Cotizacion;
+    cotizacion: Cotizacion | null;
+    cliente_real: Cliente;
     detalle_pedidos: DetallePedido[];
 }
 
@@ -257,7 +258,7 @@ const currentUserRole = computed(() => page.props.auth.user?.rol_id);
                             </tr>
                             <tr v-for="pedido in pedidos.data" :key="pedido.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold text-muted-foreground">{{ pedido.codigo || `#${pedido.id}` }}</td>
-                                <td class="p-4 font-medium">{{ pedido.cotizacion?.cliente?.usuario?.nombre }} {{ pedido.cotizacion?.cliente?.usuario?.apellido }}</td>
+                                <td class="p-4 font-medium">{{ pedido.cliente_real?.usuario?.nombre }} {{ pedido.cliente_real?.usuario?.apellido }}</td>
                                 <td class="p-4">{{ pedido.fecha_inicio ? new Date(pedido.fecha_inicio).toLocaleDateString() : 'Por definir' }}</td>
                                 <td class="p-4">{{ pedido.fecha_fin_estimada ? new Date(pedido.fecha_fin_estimada).toLocaleDateString() : 'Por definir' }}</td>
                                 <td class="p-4">
@@ -293,7 +294,7 @@ const currentUserRole = computed(() => page.props.auth.user?.rol_id);
                             <h3 class="text-xl font-bold text-foreground flex items-center gap-2">
                                 Detalles de Producción
                             </h3>
-                            <p class="text-sm text-muted-foreground mt-0.5">Pedido {{ selectedPedido?.codigo || `#${selectedPedido?.id}` }} - {{ selectedPedido?.cotizacion?.cliente?.usuario?.nombre }} {{ selectedPedido?.cotizacion?.cliente?.usuario?.apellido }}</p>
+                            <p class="text-sm text-muted-foreground mt-0.5">Pedido {{ selectedPedido?.codigo || `#${selectedPedido?.id}` }} - {{ selectedPedido?.cliente_real?.usuario?.nombre }} {{ selectedPedido?.cliente_real?.usuario?.apellido }}</p>
                         </div>
                     </div>
                     <button @click="closeModal" class="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">

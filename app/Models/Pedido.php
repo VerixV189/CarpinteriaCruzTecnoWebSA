@@ -9,13 +9,14 @@ class Pedido extends Model
 {
     use RegistraBitacora;
     protected $fillable = [
+        'cliente_id',
         'cotizacion_id',
         'codigo',
         'precio',
         'fecha_entrega'
     ];
 
-    protected $appends = ['estado', 'fecha_inicio', 'fecha_fin_estimada'];
+    protected $appends = ['estado', 'fecha_inicio', 'fecha_fin_estimada', 'cliente_real'];
 
     public function getEstadoAttribute()
     {
@@ -58,6 +59,16 @@ class Pedido extends Model
     public function getFechaFinEstimadaAttribute()
     {
         return $this->fecha_entrega;
+    }
+
+    public function getClienteRealAttribute()
+    {
+        return $this->cliente ?? ($this->cotizacion ? $this->cotizacion->cliente : null);
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
     public function cotizacion()

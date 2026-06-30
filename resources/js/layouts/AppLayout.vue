@@ -4,6 +4,9 @@ import NavigationHeader from '@/components/NavigationHeader.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { useAppearance } from '@/composables/useAppearance';
+
+useAppearance();
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];

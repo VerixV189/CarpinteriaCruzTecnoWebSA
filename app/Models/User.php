@@ -31,6 +31,7 @@ class User extends Authenticatable
         'telefono',
         'estado',
         'rol_id',
+        'configuracion_tema',
     ];
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'rol_id' => 'integer',
+            'configuracion_tema' => 'array',
         ];
     }
 

@@ -51,7 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('tipos', App\Http\Controllers\TipoController::class);
     Route::post('cotizaciones/{cotizacion}/detalles', [App\Http\Controllers\CotizacionController::class, 'storeDetalle'])->name('cotizaciones.detalles.store');
     Route::put('cotizaciones/{cotizacion}/estado', [App\Http\Controllers\CotizacionController::class, 'updateEstado'])->name('cotizaciones.estado.update');
-    Route::put('cotizaciones/{cotizacion}/enviar', [App\Http\Controllers\CotizacionController::class, 'enviarCotizacion'])->name('cotizaciones.enviar');
+    Route::post('cotizaciones/{cotizacion}/enviar_y_guardar', [App\Http\Controllers\CotizacionController::class, 'enviarYGuardar'])->name('cotizaciones.enviar_y_guardar');
     Route::resource('cotizaciones', App\Http\Controllers\CotizacionController::class)->parameters([
         'cotizaciones' => 'cotizacion'
     ]);
@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Rutas personalizadas de Pagos
     Route::put('pagos/{pago}/efectivo', [App\Http\Controllers\PagoController::class, 'marcarEfectivo'])->name('pagos.efectivo');
     Route::post('pagos/{pago}/pagofacil', [App\Http\Controllers\PagoController::class, 'iniciarPagoFacil'])->name('pagos.pagofacil');
+    Route::get('pagos/{pago}/status', [App\Http\Controllers\PagoController::class, 'status'])->name('pagos.status');
     
     Route::get('pagos/return', [App\Http\Controllers\PagoController::class, 'returnPagoFacil'])->name('pagos.return');
 

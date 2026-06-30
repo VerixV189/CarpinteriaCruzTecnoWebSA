@@ -95,13 +95,27 @@ class CotizacionController extends Controller
 
         $request->validate([
             'descripcion' => 'required|string',
+            'imagenes' => 'nullable|array',
+            'imagenes.*' => 'image|max:2048', // Max 2MB per image
         ]);
 
-        Cotizacion::create([
-            'cliente_id' => $clienteId,
-            'descripcion' => $request->descripcion,
-            'estado' => 'Pendiente',
-        ]);
+        DB::transaction(function () use ($clienteId, $request) {
+            $cotizacion = Cotizacion::create([
+                'cliente_id' => $clienteId,
+                'descripcion' => $request->descripcion,
+                'estado' => 'Pendiente',
+            ]);
+
+            if ($request->hasFile('imagenes')) {
+                foreach ($request->file('imagenes') as $imagen) {
+                    $path = $imagen->store('cotizaciones', 'public');
+                    \App\Models\Imagen::create([
+                        'cotizacion_id' => $cotizacion->id,
+                        'URL' => '/storage/' . $path,
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('cotizaciones.index')->with('success', 'Cotización solicitada correctamente.');
     }
@@ -115,7 +129,8 @@ class CotizacionController extends Controller
 
         $cotizacion->load([
             'cliente.usuario', 
-            'detalleCotizaciones.carpintero.usuario'
+            'detalleCotizaciones.carpintero.usuario',
+            'imagenes'
         ]);
 
         if ($user->rol_id === 2 && (!$cotizacion->cliente || $cotizacion->cliente->usuario_id != $user->id)) {
@@ -169,8 +184,8 @@ class CotizacionController extends Controller
         return redirect()->back()->with('success', 'Detalle agregado a la cotización.');
     }
 
-    // Envia la cotización de Pendiente a Cotizado para que el cliente la vea y apruebe
-    public function enviarCotizacion(Cotizacion $cotizacion)
+    // Envia la cotización de Pendiente a Cotizado guardando los detalles
+    public function enviarYGuardar(Request $request, Cotizacion $cotizacion)
     {
         $this->verificarPermiso('ACTCOT');
 
@@ -179,11 +194,42 @@ class CotizacionController extends Controller
             abort(403, 'Solo los carpinteros y administradores pueden enviar cotizaciones.');
         }
 
-        if ($cotizacion->estado === 'Pendiente') {
-            $cotizacion->update(['estado' => 'Cotizado']);
+        $request->validate([
+            'detalles' => 'array',
+            'detalles.*.descripcion' => 'required|string',
+            'detalles.*.precio' => 'required|numeric|min:0',
+        ]);
+
+        $carpinteroId = null;
+        if ($user->rol_id === 3 && $user->carpintero) {
+            $carpinteroId = $user->carpintero->id;
+        } elseif ($user->rol_id === 1) {
+            $carpintero = \App\Models\Carpintero::where('usuario_id', $user->id)->first();
+            if (!$carpintero) {
+                $carpintero = \App\Models\Carpintero::first();
+            }
+            if ($carpintero) {
+                $carpinteroId = $carpintero->id;
+            }
         }
 
-        return redirect()->back()->with('success', 'Cotización enviada al cliente.');
+        DB::transaction(function () use ($cotizacion, $request, $carpinteroId) {
+            if ($request->has('detalles')) {
+                foreach ($request->detalles as $det) {
+                    DetalleCotizacion::create([
+                        'cotizacion_id' => $cotizacion->id,
+                        'carpintero_id' => $carpinteroId,
+                        'descripcion' => $det['descripcion'],
+                        'precio' => $det['precio'],
+                    ]);
+                }
+            }
+            if ($cotizacion->estado === 'Pendiente') {
+                $cotizacion->update(['estado' => 'Cotizado']);
+            }
+        });
+
+        return redirect()->back()->with('success', 'Cotización guardada y enviada al cliente.');
     }
 
     // El cliente aprueba o rechaza desde la vista "Show"
@@ -195,6 +241,10 @@ class CotizacionController extends Controller
         
         if ($user->rol_id !== 2 || $cotizacion->cliente->usuario_id !== $user->id) {
             abort(403, 'Solo el solicitante puede aprobar esta cotización.');
+        }
+
+        if ($cotizacion->estado !== 'Cotizado') {
+            abort(403, 'No puedes aprobar ni rechazar esta cotización porque aún no ha sido enviada o ya fue procesada.');
         }
 
         $request->validate([
@@ -214,6 +264,7 @@ class CotizacionController extends Controller
             $total = $cotizacion->detalleCotizaciones->sum('precio');
             
             $pedido = \App\Models\Pedido::create([
+                'cliente_id' => $cotizacion->cliente_id,
                 'cotizacion_id' => $cotizacion->id,
                 'codigo' => 'PED-' . str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT),
                 'precio' => $total,

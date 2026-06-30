@@ -27,4 +27,9 @@ class Cliente extends Model
     {
         return $this->hasOne(Carrito::class, 'cliente_id');
     }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'cliente_id');
+    }
 }

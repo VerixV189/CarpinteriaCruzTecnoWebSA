@@ -43,7 +43,8 @@ return new class extends Migration
 
         Schema::create('pedidos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cotizacion_id')->constrained('cotizaciones')->onDelete('cascade');
+            $table->foreignId('cliente_id')->constrained('clientes')->onDelete('cascade');
+            $table->foreignId('cotizacion_id')->nullable()->constrained('cotizaciones')->onDelete('cascade');
             $table->string('codigo');
             $table->decimal('precio', 10, 2);
             $table->date('fecha_entrega');

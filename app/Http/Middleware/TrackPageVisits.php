@@ -16,17 +16,23 @@ class TrackPageVisits
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->isMethod('GET') && !$request->ajax()) {
+        // Inertia uses XHR but we still want to track page visits
+        // So we only ignore if it's an API route or debugbar, but allow web GET requests
+        if ($request->isMethod('GET')) {
             $url = $request->path();
             
-            // Ignorar peticiones a assets o API si las hay
-            if (!str_starts_with($url, 'api/') && !str_starts_with($url, '_debugbar')) {
-                $visit = PageVisit::firstOrCreate(
-                    ['url' => $url],
-                    ['visits' => 0]
-                );
-                
-                $visit->increment('visits');
+            // Ignore asset requests, API routes, or debugbar
+            if (!str_starts_with($url, 'api/') && !str_starts_with($url, '_debugbar') && !str_starts_with($url, 'build/')) {
+                // If it's an Inertia partial reload, we shouldn't increment
+                // Inertia sets X-Inertia-Partial-Data header for partials
+                if (!$request->hasHeader('X-Inertia-Partial-Data')) {
+                    $visit = PageVisit::firstOrCreate(
+                        ['url' => $url],
+                        ['visits' => 0]
+                    );
+                    
+                    $visit->increment('visits');
+                }
             }
         }
 

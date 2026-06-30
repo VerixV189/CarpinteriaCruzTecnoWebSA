@@ -23,7 +23,8 @@ interface Cotizacion {
 interface Pedido {
     id: number;
     codigo: string;
-    cotizacion: Cotizacion;
+    cliente_real: Cliente;
+    cotizacion: Cotizacion | null;
 }
 
 interface Pago {
@@ -161,7 +162,7 @@ const totalPagado = computed(() => {
                             </tr>
                             <tr v-for="venta in ventas.data" :key="venta.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold text-muted-foreground">{{ venta.codigo }}</td>
-                                <td class="p-4 font-medium">{{ venta.pedido?.cotizacion?.cliente?.usuario?.nombre }} {{ venta.pedido?.cotizacion?.cliente?.usuario?.apellido }}</td>
+                                <td class="p-4 font-medium">{{ venta.pedido?.cliente_real?.usuario?.nombre }} {{ venta.pedido?.cliente_real?.usuario?.apellido }}</td>
                                 <td class="p-4">{{ new Date(venta.created_at).toLocaleDateString() }}</td>
                                 <td class="p-4">
                                     <span :class="`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${venta.tipo === 'Crédito' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-300'}`">
@@ -195,7 +196,7 @@ const totalPagado = computed(() => {
                             Detalles de la Venta 
                             <span class="text-muted-foreground text-sm font-normal">{{ selectedVenta?.codigo }}</span>
                         </h3>
-                        <p class="text-sm text-muted-foreground mt-1">Cliente: {{ selectedVenta?.pedido?.cotizacion?.cliente?.usuario?.nombre }} {{ selectedVenta?.pedido?.cotizacion?.cliente?.usuario?.apellido }}</p>
+                        <p class="text-sm text-muted-foreground mt-1">Cliente: {{ selectedVenta?.pedido?.cliente_real?.usuario?.nombre }} {{ selectedVenta?.pedido?.cliente_real?.usuario?.apellido }}</p>
                     </div>
                     <button @click="closeModal" class="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                         <X class="h-5 w-5" />

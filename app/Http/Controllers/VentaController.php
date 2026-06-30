@@ -14,12 +14,20 @@ class VentaController extends Controller
     {
         $search = $request->input('search');
         
-        $query = Venta::with(['pedido.cotizacion.cliente.usuario', 'pagos'])->latest();
+        $query = Venta::with([
+            'pedido.cliente.usuario',
+            'pedido.cotizacion.cliente.usuario',
+            'pagos'
+        ])->latest();
 
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('codigo', 'like', "%{$search}%")
                   ->orWhere('tipo', 'like', "%{$search}%")
+                  ->orWhereHas('pedido.cliente.usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%");
+                  })
                   ->orWhereHas('pedido.cotizacion.cliente.usuario', function($qUser) use ($search) {
                       $qUser->where('nombre', 'like', "%{$search}%")
                             ->orWhere('apellido', 'like', "%{$search}%");

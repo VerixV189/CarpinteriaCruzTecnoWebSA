@@ -22,7 +22,8 @@ interface Cotizacion {
 }
 
 interface Pedido {
-    cotizacion: Cotizacion;
+    cliente_real: Cliente;
+    cotizacion: Cotizacion | null;
 }
 
 interface Venta {
@@ -110,6 +111,7 @@ const procesarPagoFacil = async () => {
         // Guardamos la imagen QR devuelta por la API Directa
         if (response.data.qrBase64) {
             qrImageBase64.value = response.data.qrBase64;
+            startPolling(pagoSeleccionado.value.id);
         } else {
             throw new Error("No se recibió la imagen QR");
         }
@@ -122,10 +124,35 @@ const procesarPagoFacil = async () => {
     }
 };
 
-// Modificamos el botón cancelar para limpiar el QR
+let pollingInterval: number | null = null;
+
+const startPolling = (pagoId: number) => {
+    stopPolling();
+    pollingInterval = window.setInterval(async () => {
+        try {
+            const { data } = await axios.get(`/pagos/${pagoId}/status`);
+            if (data.estado.toLowerCase() === 'pagado') {
+                cerrarModalPago();
+                refreshPage();
+            }
+        } catch (e) {
+            console.error('Error polling status', e);
+        }
+    }, 3000);
+};
+
+const stopPolling = () => {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+};
+
+// Modificamos el botón cancelar para limpiar el QR y detener el polling
 const cerrarModalPago = () => {
     showPagoModal.value = false;
     qrImageBase64.value = null;
+    stopPolling();
 };
 
 // Formulario de Cobro en Efectivo (Admin/Carpintero)
@@ -254,7 +281,7 @@ const cobrarEfectivo = (pago: Pago) => {
                             </tr>
                             <tr v-for="pago in pagos.data" :key="pago.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4 font-semibold">#REC-{{ pago.id }}</td>
-                                <td class="p-4 font-medium">{{ pago.venta.pedido.cotizacion.cliente.usuario.nombre }} {{ pago.venta.pedido.cotizacion.cliente.usuario.apellido }}</td>
+                                <td class="p-4 font-medium">{{ pago.venta?.pedido?.cliente_real?.usuario?.nombre }} {{ pago.venta?.pedido?.cliente_real?.usuario?.apellido }}</td>
                                 <td class="p-4 font-bold text-green-600 dark:text-green-500">
                                     Bs. {{ parseFloat(pago.subtotal).toFixed(2) }}
                                 </td>

@@ -1,4 +1,5 @@
 import { onMounted, ref } from 'vue';
+import { usePage, router } from '@inertiajs/vue3';
 
 type Appearance = 'light' | 'dark' | 'system';
 
@@ -75,8 +76,35 @@ export function useAppearance() {
     const contrast = ref<string>('normal');
     const autoDayNight = ref<boolean>(true);
 
+    const page = usePage();
+
+    // Sincronizar datos del backend a localStorage
+    const syncFromUserToLocal = () => {
+        const user = page.props.auth?.user as any;
+        if (user && user.configuracion_tema) {
+            const config = user.configuracion_tema;
+            
+            if (config.appearance) localStorage.setItem('appearance', config.appearance);
+            if (config.theme) localStorage.setItem('theme', config.theme);
+            if (config.theme_color) localStorage.setItem('theme_color', config.theme_color);
+            if (config.font_size) localStorage.setItem('font_size', config.font_size);
+            if (config.contrast) localStorage.setItem('contrast', config.contrast);
+            if (config.auto_day_night !== undefined) localStorage.setItem('auto_day_night', config.auto_day_night ? 'true' : 'false');
+        }
+    };
+
+    // Guardar cambios en backend
+    const saveToBackend = (data: any) => {
+        const user = page.props.auth?.user as any;
+        if (user) {
+            router.put(route('user.appearance.update'), data, { preserveScroll: true, preserveState: true });
+        }
+    };
+
     onMounted(() => {
+        syncFromUserToLocal();
         applyGlobalPreferences();
+        
         appearance.value = (localStorage.getItem('appearance') as Appearance) || 'system';
         theme.value = localStorage.getItem('theme') || 'adultos';
         
@@ -92,6 +120,7 @@ export function useAppearance() {
         appearance.value = value;
         localStorage.setItem('appearance', value);
         applyGlobalPreferences();
+        saveToBackend({ appearance: value });
     }
 
     function updateThemePreference(value: string) {
@@ -104,30 +133,35 @@ export function useAppearance() {
         localStorage.setItem('theme_color', defaultColor);
         
         applyGlobalPreferences();
+        saveToBackend({ theme: value, theme_color: defaultColor });
     }
 
     function updateThemeColor(value: string) {
         themeColor.value = value;
         localStorage.setItem('theme_color', value);
         applyGlobalPreferences();
+        saveToBackend({ theme_color: value });
     }
 
     function updateFontSize(value: string) {
         fontSize.value = value;
         localStorage.setItem('font_size', value);
         applyGlobalPreferences();
+        saveToBackend({ font_size: value });
     }
 
     function updateContrast(value: string) {
         contrast.value = value;
         localStorage.setItem('contrast', value);
         applyGlobalPreferences();
+        saveToBackend({ contrast: value });
     }
 
     function updateAutoDayNight(value: boolean) {
         autoDayNight.value = value;
         localStorage.setItem('auto_day_night', value ? 'true' : 'false');
         applyGlobalPreferences();
+        saveToBackend({ auto_day_night: value });
     }
 
     return {

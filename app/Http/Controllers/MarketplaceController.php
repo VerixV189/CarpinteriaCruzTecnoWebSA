@@ -199,17 +199,14 @@ class MarketplaceController extends Controller
                 $total += $item->cantidad * $item->precio_unitario;
             }
 
-            // 1. Crear Cotización "ficticia" aprobada para la venta directa
-            $cotizacion = Cotizacion::create([
-                'cliente_id' => $cliente->id,
-                'descripcion' => 'Venta directa desde Marketplace (Carrito)',
-                'estado' => 'Aprobada',
-            ]);
-
-            // 2. Crear Pedido
+            // 1. Crear Pedido
+            // ID para código (simulado o usando max ID)
+            $nextId = Pedido::max('id') + 1;
+            
             $pedido = Pedido::create([
-                'cotizacion_id' => $cotizacion->id,
-                'codigo' => 'PED-' . str_pad($cotizacion->id, 4, '0', STR_PAD_LEFT),
+                'cliente_id' => $cliente->id,
+                'cotizacion_id' => null,
+                'codigo' => 'PED-' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
                 'precio' => $total,
                 'fecha_entrega' => now()->addDays(3), // Por defecto
             ]);

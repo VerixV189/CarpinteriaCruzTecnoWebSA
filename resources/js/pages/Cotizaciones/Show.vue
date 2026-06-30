@@ -29,11 +29,28 @@ const detalleForm = useForm({
     precio: '',
 });
 
+const detallesLocales = ref<Array<{ descripcion: string, precio: string, id_local: number }>>([]);
+let nextLocalId = 1;
+
+const localTotal = computed(() => {
+    return detallesLocales.value.reduce((acc, d) => acc + parseFloat(d.precio), 0);
+});
+
+const totalGeneral = computed(() => total.value + localTotal.value);
+
+// Agregar detalle al array local
 const submitDetalle = () => {
-    detalleForm.post(`/cotizaciones/${props.cotizacion.id}/detalles`, {
-        preserveScroll: true,
-        onSuccess: () => detalleForm.reset(),
+    if (!detalleForm.descripcion || !detalleForm.precio) return;
+    detallesLocales.value.push({
+        id_local: nextLocalId++,
+        descripcion: detalleForm.descripcion,
+        precio: detalleForm.precio.toString(),
     });
+    detalleForm.reset();
+};
+
+const removerDetalleLocal = (id_local: number) => {
+    detallesLocales.value = detallesLocales.value.filter(d => d.id_local !== id_local);
 };
 
 // Formulario de aprobación (Cliente)
@@ -66,10 +83,21 @@ const confirmarAprobacion = () => {
     });
 };
 
-const enviarForm = useForm({});
+const enviarForm = useForm({
+    detalles: [] as Array<{ descripcion: string, precio: string }>
+});
+
 const enviarAlCliente = () => {
-    enviarForm.put(`/cotizaciones/${props.cotizacion.id}/enviar`, {
+    enviarForm.detalles = detallesLocales.value.map(d => ({
+        descripcion: d.descripcion,
+        precio: d.precio
+    }));
+    
+    enviarForm.post(`/cotizaciones/${props.cotizacion.id}/enviar_y_guardar`, {
         preserveScroll: true,
+        onSuccess: () => {
+            detallesLocales.value = [];
+        }
     });
 };
 </script>
@@ -99,6 +127,16 @@ const enviarAlCliente = () => {
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow p-6 space-y-4">
                 <h2 class="text-lg font-semibold border-b pb-2">Requerimiento del Cliente</h2>
                 <p class="text-sm whitespace-pre-wrap">{{ cotizacion.descripcion }}</p>
+
+                <!-- IMÁGENES DE REFERENCIA -->
+                <div v-if="cotizacion.imagenes && cotizacion.imagenes.length > 0" class="pt-4 border-t mt-4">
+                    <h3 class="text-md font-medium mb-3 text-muted-foreground">Imágenes de Referencia</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                        <a v-for="imagen in cotizacion.imagenes" :key="imagen.id" :href="imagen.URL" target="_blank" class="block group relative overflow-hidden rounded-md border shadow-sm hover:shadow-md transition-shadow">
+                            <img :src="imagen.URL" class="w-full h-32 object-cover transform group-hover:scale-105 transition-transform duration-300" />
+                        </a>
+                    </div>
+                </div>
             </div>
 
             <!-- TABLA DE DETALLES (PRESUPUESTO) -->
@@ -106,7 +144,7 @@ const enviarAlCliente = () => {
                 <div class="p-4 border-b bg-muted/50 flex justify-between items-center">
                     <h2 class="text-lg font-semibold">Detalles del Presupuesto</h2>
                     <div class="text-lg font-bold text-amber-600">
-                        Total: Bs. {{ (currentUserRole === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente') ? '0.00' : total.toFixed(2) }}
+                        Total: Bs. {{ (currentUserRole === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente') ? '0.00' : totalGeneral.toFixed(2) }}
                     </div>
                 </div>
                 
@@ -120,15 +158,29 @@ const enviarAlCliente = () => {
                             </tr>
                         </thead>
                         <tbody class="divide-y">
-                            <tr v-if="!cotizacion.detalle_cotizaciones || cotizacion.detalle_cotizaciones.length === 0 || (currentUserRole === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente')">
+                            <tr v-if="!cotizacion.detalle_cotizaciones || cotizacion.detalle_cotizaciones.length === 0 && detallesLocales.length === 0 || (currentUserRole === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente')">
                                 <td colspan="3" class="p-4 text-center text-muted-foreground italic">
                                     El carpintero aún no ha agregado detalles ni precios.
                                 </td>
                             </tr>
-                            <tr v-else v-for="detalle in cotizacion.detalle_cotizaciones" :key="detalle.id" class="hover:bg-muted/50">
+                            <tr v-else v-for="detalle in cotizacion.detalle_cotizaciones" :key="'db-'+detalle.id" class="hover:bg-muted/50">
                                 <td class="p-4">{{ detalle.descripcion }}</td>
-                                <td class="p-4 text-muted-foreground">{{ detalle.carpintero?.usuario?.nombre }}</td>
+                                <td class="p-4 text-muted-foreground">{{ detalle.carpintero?.usuario?.nombre || 'Carpintero Asignado' }}</td>
                                 <td class="p-4 text-right font-medium">{{ parseFloat(detalle.precio).toFixed(2) }}</td>
+                            </tr>
+                            <!-- Detalles Agregados Localmente -->
+                            <tr v-for="detalleLocal in detallesLocales" :key="'local-'+detalleLocal.id_local" class="hover:bg-muted/50 bg-amber-50/30 dark:bg-amber-950/20">
+                                <td class="p-4 flex items-center gap-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">Nuevo</span>
+                                    {{ detalleLocal.descripcion }}
+                                </td>
+                                <td class="p-4 text-muted-foreground">Tú (Sin Guardar)</td>
+                                <td class="p-4 text-right font-medium flex items-center justify-end gap-3">
+                                    {{ parseFloat(detalleLocal.precio).toFixed(2) }}
+                                    <button @click="removerDetalleLocal(detalleLocal.id_local)" class="text-red-500 hover:text-red-700 transition-colors" title="Quitar item">
+                                        <X class="w-4 h-4" />
+                                    </button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -156,13 +208,15 @@ const enviarAlCliente = () => {
                 </div>
 
                 <!-- Botón para Enviar Cotización al Cliente -->
-                <div v-if="(cotizacion.estado || '').toLowerCase() === 'pendiente' && cotizacion.detalle_cotizaciones && cotizacion.detalle_cotizaciones.length > 0" class="pt-4 border-t border-stone-200 dark:border-stone-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div v-if="(cotizacion.estado || '').toLowerCase() === 'pendiente' && (cotizacion.detalle_cotizaciones?.length > 0 || detallesLocales.length > 0)" class="pt-4 border-t border-stone-200 dark:border-stone-850 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="text-xs text-muted-foreground">
-                        Tienes <strong>{{ cotizacion.detalle_cotizaciones.length }}</strong> item(s) en este presupuesto. El cliente aún no los puede ver ni aprobar. Haz clic en el botón para enviarle la cotización oficial.
+                        Tienes <strong>{{ (cotizacion.detalle_cotizaciones?.length || 0) + detallesLocales.length }}</strong> item(s) listos. 
+                        <span v-if="detallesLocales.length > 0" class="text-amber-600 dark:text-amber-500 block sm:inline">Hay {{ detallesLocales.length }} item(s) sin guardar en la BD.</span>
+                        Haz clic en el botón para guardar todo y enviar la cotización oficial al cliente.
                     </div>
                     <button @click="enviarAlCliente" :disabled="enviarForm.processing" class="inline-flex items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-amber-700 transition-colors cursor-pointer">
                         <LoaderCircle v-if="enviarForm.processing" class="mr-2 h-4 w-4 animate-spin" />
-                        Enviar Cotización al Cliente
+                        Guardar y Enviar al Cliente
                     </button>
                 </div>
             </div>
@@ -172,7 +226,7 @@ const enviarAlCliente = () => {
                 <div v-if="!showPaymentDialog">
                     <h3 class="text-lg font-semibold">¿Estás de acuerdo con este presupuesto?</h3>
                     <p class="text-sm text-muted-foreground">Revisa los detalles del carpintero antes de aprobar. Al aprobar, autorizas la creación del pedido.</p>
-                    <div class="flex gap-4 mt-4">
+                    <div class="flex justify-center gap-4 mt-4">
                         <button @click="cambiarEstado('Rechazada')" :disabled="estadoForm.processing" class="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 shadow-sm hover:bg-red-100 transition-colors">
                             <LoaderCircle v-if="estadoForm.processing && estadoForm.estado === 'Rechazada'" class="mr-2 h-4 w-4 animate-spin" />
                             <X v-else class="w-4 h-4 mr-2" /> Rechazar
@@ -197,7 +251,7 @@ const enviarAlCliente = () => {
                         <div v-if="estadoForm.tipo_pago === 'Crédito'" class="space-y-2">
                             <label class="text-sm font-medium">Cantidad de Cuotas</label>
                             <input v-model="estadoForm.cuotas" type="number" min="2" max="12" required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
-                            <p class="text-xs text-muted-foreground">Monto por cuota: Bs. {{ (total / estadoForm.cuotas).toFixed(2) }}</p>
+                            <p class="text-xs text-muted-foreground">Monto por cuota: Bs. {{ (totalGeneral / estadoForm.cuotas).toFixed(2) }}</p>
                         </div>
 
                         <div class="flex gap-2 justify-end pt-2">

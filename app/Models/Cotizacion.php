@@ -30,4 +30,9 @@ class Cotizacion extends Model
     {
         return $this->hasOne(Pedido::class, 'cotizacion_id');
     }
+
+    public function imagenes()
+    {
+        return $this->hasMany(Imagen::class, 'cotizacion_id');
+    }
 }

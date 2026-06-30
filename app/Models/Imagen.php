@@ -10,11 +10,17 @@ class Imagen extends Model
 
     protected $fillable = [
         'producto_id',
+        'cotizacion_id',
         'URL'
     ];
 
     public function producto()
     {
         return $this->belongsTo(Producto::class, 'producto_id');
+    }
+
+    public function cotizacion()
+    {
+        return $this->belongsTo(Cotizacion::class, 'cotizacion_id');
     }
 }

@@ -27,12 +27,17 @@ class PagoController extends Controller
     {
         $user = Auth::user();
 
-        $query = Pago::with('venta.pedido.cotizacion.cliente.usuario');
+        $query = Pago::with([
+            'venta.pedido.cliente.usuario',
+            'venta.pedido.cotizacion.cliente.usuario'
+        ]);
 
         // Si es cliente (2), solo ve los suyos
         if ($user->rol_id === 2) {
-            $query->whereHas('venta.pedido.cotizacion.cliente', function ($q) use ($user) {
-                $q->where('usuario_id', $user->id);
+            $query->whereHas('venta.pedido', function ($q) use ($user) {
+                $q->whereHas('cliente', function ($qC) use ($user) {
+                    $qC->where('usuario_id', $user->id);
+                });
             });
         }
 
@@ -40,6 +45,10 @@ class PagoController extends Controller
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('estado', 'like', "%{$search}%")
+                  ->orWhereHas('venta.pedido.cliente.usuario', function($qUser) use ($search) {
+                      $qUser->where('nombre', 'like', "%{$search}%")
+                            ->orWhere('apellido', 'like', "%{$search}%");
+                  })
                   ->orWhereHas('venta.pedido.cotizacion.cliente.usuario', function($qUser) use ($search) {
                       $qUser->where('nombre', 'like', "%{$search}%")
                             ->orWhere('apellido', 'like', "%{$search}%");
@@ -72,8 +81,9 @@ class PagoController extends Controller
     {
         $user = Auth::user();
         // Verificar que el pago le pertenece al cliente
-        $pago->load('venta.pedido.cotizacion.cliente');
-        if ($user->rol_id === 2 && $pago->venta->pedido->cotizacion->cliente->usuario_id != $user->id) {
+        $pago->load('venta.pedido.cliente');
+        $clientePedido = $pago->venta->pedido->cliente;
+        if ($user->rol_id === 2 && (!$clientePedido || $clientePedido->usuario_id != $user->id)) {
             abort(403, 'No tienes permiso para pagar esta cuota.');
         }
 
@@ -108,9 +118,11 @@ class PagoController extends Controller
         // URLs absolutas para la integración (callback)
         $url_callback = rtrim(env('APP_URL', url('/')), '/') . '/pagos/callback';
 
-        $nombreCliente = $pago->venta->pedido->cotizacion->cliente->usuario->nombre ?? 'Cliente';
-        $emailCliente = $pago->venta->pedido->cotizacion->cliente->usuario->email ?? 'correo@ejemplo.com';
-        $idCliente = $pago->venta->pedido->cotizacion->cliente_id ?? '1';
+        $pedido = $pago->venta->pedido;
+        $clienteReal = $pedido->cliente ?? ($pedido->cotizacion ? $pedido->cotizacion->cliente : null);
+        $nombreCliente = $clienteReal?->usuario?->nombre ?? 'Cliente';
+        $emailCliente = $clienteReal?->usuario?->email ?? 'correo@ejemplo.com';
+        $idCliente = $clienteReal?->id ?? '1';
 
         // 3. Payload para Generar QR
         $qrPayload = [
@@ -183,5 +195,11 @@ class PagoController extends Controller
     public function returnPagoFacil(Request $request)
     {
         return redirect()->route('pagos.index')->with('success', 'Has retornado de la pasarela de pagos. Verifica el estado actual de tu cuota.');
+    }
+
+    public function status(Pago $pago)
+    {
+        // Solo para verificar si ya fue pagado
+        return response()->json(['estado' => $pago->estado]);
     }
 }

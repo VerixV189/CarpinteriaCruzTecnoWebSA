@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
                 'usuario_id' => $usuario_id,
                 'accion' => 'Login fallido',
                 'modelo_tipo' => 'Auth',
-                'modelo_id' => $usuario_id,
+                'modelo_id' => $usuario_id ?? '0',
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
             ]);

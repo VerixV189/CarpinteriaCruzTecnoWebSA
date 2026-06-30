@@ -48,6 +48,7 @@ const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
 const calcularTotal = (cotizacion: Cotizacion) => {
+    if (currentUserRole.value === 2 && (cotizacion.estado || '').toLowerCase() === 'pendiente') return 0;
     if (!cotizacion.detalle_cotizaciones) return 0;
     return cotizacion.detalle_cotizaciones.reduce((total, detalle) => total + parseFloat(detalle.precio), 0);
 };

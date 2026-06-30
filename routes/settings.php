@@ -18,4 +18,6 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
+
+    Route::put('settings/appearance', [\App\Http\Controllers\UserConfigController::class, 'updateAppearance'])->name('user.appearance.update');
 });
