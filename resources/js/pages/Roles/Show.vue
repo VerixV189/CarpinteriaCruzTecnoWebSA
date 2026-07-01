@@ -31,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                     </div>
                 </div>
                 <Link
-                    :href="`/roles/${role.id}/edit`"
+                    :href="route('roles.edit', role.id)"
                     class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                     Editar Rol

@@ -156,7 +156,7 @@ const refreshPage = () => {
                                 <div class="text-lg font-extrabold text-amber-600 dark:text-amber-500">Bs. {{ calcularTotal(cotizacion).toFixed(2) }}</div>
                             </div>
                             <Link
-                                :href="`/cotizaciones/${cotizacion.id}`"
+                                :href="route('cotizaciones.show', cotizacion.id)"
                                 class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 px-4 py-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-750 transition-colors shadow-sm cursor-pointer whitespace-nowrap w-full sm:w-auto"
                             >
                                 Ver Detalles
@@ -201,7 +201,7 @@ const refreshPage = () => {
                                 </td>
                                 <td class="p-4 text-right">
                                     <Link
-                                        :href="`/cotizaciones/${cotizacion.id}`"
+                                        :href="route('cotizaciones.show', cotizacion.id)"
                                         class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
                                     >
                                         Ver Detalles

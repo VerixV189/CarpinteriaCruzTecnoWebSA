@@ -137,7 +137,7 @@ const deletePermiso = (id: number) => {
                                 <td class="p-4">{{ permiso.descripcion }}</td>
                                 <td class="p-4 text-right" v-if="currentUserRole === 1">
                                     <div class="flex justify-end gap-2">
-                                        <Link :href="`/permisos/${permiso.id}/edit`" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+                                        <Link :href="route('permisos.edit', permiso.id)" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
                                             <Edit class="h-3.5 w-3.5" />
                                         </Link>
                                         <button @click="deletePermiso(permiso.id)" class="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-red-100">
