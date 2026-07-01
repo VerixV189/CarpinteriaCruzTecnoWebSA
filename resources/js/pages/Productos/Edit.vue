@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm, Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { ArrowLeft, Save, LoaderCircle, Image as ImageIcon } from 'lucide-vue-next';
 
@@ -48,11 +48,13 @@ const form = useForm({
     imagen: null as File | null,
 });
 
+const page = usePage<any>();
+
 const imagePreview = ref<string | null>(null);
 
 onMounted(() => {
     if (props.producto.imagenes && props.producto.imagenes.length > 0) {
-        imagePreview.value = props.producto.imagenes[0].URL;
+        imagePreview.value = (page.props.app_url || '') + props.producto.imagenes[0].URL;
     }
 });
 

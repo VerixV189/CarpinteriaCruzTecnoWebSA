@@ -132,8 +132,8 @@ const enviarAlCliente = () => {
                 <div v-if="cotizacion.imagenes && cotizacion.imagenes.length > 0" class="pt-4 border-t mt-4">
                     <h3 class="text-md font-medium mb-3 text-muted-foreground">Imágenes de Referencia</h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        <a v-for="imagen in cotizacion.imagenes" :key="imagen.id" :href="imagen.URL" target="_blank" class="block group relative overflow-hidden rounded-md border shadow-sm hover:shadow-md transition-shadow">
-                            <img :src="imagen.URL" class="w-full h-32 object-cover transform group-hover:scale-105 transition-transform duration-300" />
+                        <a v-for="imagen in cotizacion.imagenes" :key="imagen.id" :href="($page.props.app_url || '') + imagen.URL" target="_blank" class="block group relative overflow-hidden rounded-md border shadow-sm hover:shadow-md transition-shadow">
+                            <img :src="($page.props.app_url || '') + imagen.URL" class="w-full h-32 object-cover transform group-hover:scale-105 transition-transform duration-300" />
                         </a>
                     </div>
                 </div>

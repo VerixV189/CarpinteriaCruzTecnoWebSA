@@ -225,8 +225,8 @@ const saveInsumos = () => {
                             </tr>
                             <tr v-for="producto in productos.data" :key="producto.id" class="hover:bg-muted/50 transition-colors">
                                 <td class="p-4">
-                                    <div v-if="producto.imagenes && producto.imagenes.length > 0" class="h-10 w-10 rounded overflow-hidden bg-muted">
-                                        <img :src="producto.imagenes[0].URL" alt="img" class="h-full w-full object-cover" />
+                                    <div v-if="producto.imagenes && producto.imagenes.length > 0" class="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-muted">
+                                        <img :src="($page.props.app_url || '') + producto.imagenes[0].URL" alt="img" class="h-full w-full object-cover" />
                                     </div>
                                     <div v-else class="h-10 w-10 rounded bg-muted flex items-center justify-center text-muted-foreground">
                                         <ImageIcon class="h-4 w-4" />
