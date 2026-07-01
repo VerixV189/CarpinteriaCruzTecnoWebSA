@@ -33,6 +33,13 @@ class ProductoController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return Inertia::render('Productos/Create', [
+            'tipos' => Tipo::select('id', 'nombre')->get(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -55,7 +62,16 @@ class ProductoController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Producto creado exitosamente.');
+        return redirect()->route('productos.index')->with('success', 'Producto creado exitosamente.');
+    }
+
+    public function edit(Producto $producto)
+    {
+        $producto->load('imagenes');
+        return Inertia::render('Productos/Edit', [
+            'producto' => $producto,
+            'tipos' => Tipo::select('id', 'nombre')->get(),
+        ]);
     }
 
     public function update(Request $request, Producto $producto)
@@ -88,7 +104,7 @@ class ProductoController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('success', 'Producto actualizado exitosamente.');
+        return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente.');
     }
 
     public function destroy(Producto $producto)

@@ -16,6 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     nombre: '',
+    estado: 'Activo',
     permisos: [] as number[],
 });
 
@@ -51,6 +52,15 @@ const submit = () => {
                                 <label class="text-sm font-medium">Nombre del Rol</label>
                                 <input v-model="form.nombre" type="text" placeholder="Ej: Vendedor, Supervisor..." required class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
                                 <div v-if="form.errors.nombre" class="text-xs text-red-500">{{ form.errors.nombre }}</div>
+                            </div>
+                            
+                            <div class="space-y-2 mt-4">
+                                <label class="text-sm font-medium">Estado del Rol</label>
+                                <select v-model="form.estado" class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm">
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                                <div v-if="form.errors.estado" class="text-xs text-red-500">{{ form.errors.estado }}</div>
                             </div>
                         </div>
                         

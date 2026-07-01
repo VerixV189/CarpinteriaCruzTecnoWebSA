@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, Link } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
@@ -55,50 +55,7 @@ const refreshPage = () => {
     });
 };
 
-// Modal State
-const isModalOpen = ref(false);
-const isEditing = ref(false);
-const currentId = ref<number | null>(null);
-
-const form = useForm({
-    nombre: '',
-    descripcion: '',
-    estado: 'activo',
-});
-
-const openCreateModal = () => {
-    isEditing.value = false;
-    currentId.value = null;
-    form.reset();
-    form.clearErrors();
-    isModalOpen.value = true;
-};
-
-const openEditModal = (tipo: Tipo) => {
-    isEditing.value = true;
-    currentId.value = tipo.id;
-    form.clearErrors();
-    form.nombre = tipo.nombre;
-    form.descripcion = tipo.descripcion;
-    form.estado = tipo.estado;
-    isModalOpen.value = true;
-};
-
-const closeModal = () => {
-    isModalOpen.value = false;
-};
-
-const saveTipo = () => {
-    if (isEditing.value && currentId.value) {
-        form.put(route('tipos.update', currentId.value), {
-            onSuccess: () => closeModal(),
-        });
-    } else {
-        form.post(route('tipos.store'), {
-            onSuccess: () => closeModal(),
-        });
-    }
-};
+// Modal logic removed
 
 const confirmOpen = ref(false);
 const pendingDeleteId = ref<number | null>(null);
@@ -129,13 +86,13 @@ const deleteTipo = (id: number) => {
                     <h1 class="text-2xl font-bold text-foreground">Tipos de Mueble</h1>
                     <p class="text-sm text-muted-foreground">Categorías de productos y tipos de trabajos de carpintería realizados.</p>
                 </div>
-                <button
-                    @click="openCreateModal"
+                <Link
+                    :href="route('tipos.create')"
                     class="inline-flex items-center justify-center gap-1.5 rounded-md bg-stone-900 px-4 h-9 text-xs font-medium text-white shadow-sm transition-colors hover:bg-stone-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200"
                 >
                     <Plus class="h-4 w-4" />
                     Nuevo Tipo
-                </button>
+                </Link>
             </div>
 
             <div class="flex items-center gap-2 py-4">
@@ -191,9 +148,9 @@ const deleteTipo = (id: number) => {
                                     </span>
                                 </td>
                                 <td class="p-4 text-right whitespace-nowrap">
-                                    <button @click="openEditModal(tipo)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+                                    <Link :href="route('tipos.edit', tipo.id)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
                                         <Edit class="h-4 w-4 inline" />
-                                    </button>
+                                    </Link>
                                     <button @click="deleteTipo(tipo.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                                         <Trash2 class="h-4 w-4 inline" />
                                     </button>
@@ -203,57 +160,6 @@ const deleteTipo = (id: number) => {
                     </table>
                 </div>
                 <Pagination :links="tipos.links" />
-            </div>
-        </div>
-
-        <!-- CRUD Modal -->
-        <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/50 p-4">
-            <div class="relative w-full max-w-md rounded-lg bg-background shadow-xl">
-                <div class="flex items-center justify-between border-b border-border p-4">
-                    <h3 class="text-lg font-semibold text-foreground">
-                        {{ isEditing ? 'Editar Tipo de Mueble' : 'Nuevo Tipo de Mueble' }}
-                    </h3>
-                    <button @click="closeModal" class="text-muted-foreground hover:text-foreground">
-                        <span class="sr-only">Cerrar</span>
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <form @submit.prevent="saveTipo" class="p-4 space-y-4">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-foreground">Nombre de Categoría</label>
-                            <input v-model="form.nombre" type="text" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring" required />
-                            <span v-if="form.errors.nombre" class="text-xs text-red-500">{{ form.errors.nombre }}</span>
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-foreground">Estado</label>
-                            <select v-model="form.estado" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring" required>
-                                <option value="activo">Activo</option>
-                                <option value="inactivo">Inactivo</option>
-                            </select>
-                            <span v-if="form.errors.estado" class="text-xs text-red-500">{{ form.errors.estado }}</span>
-                        </div>
-
-                        <div>
-                            <label class="mb-1 block text-sm font-medium text-foreground">Descripción</label>
-                            <textarea v-model="form.descripcion" rows="4" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring" required></textarea>
-                            <span v-if="form.errors.descripcion" class="text-xs text-red-500">{{ form.errors.descripcion }}</span>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 flex justify-end space-x-3">
-                        <button type="button" @click="closeModal" class="rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-muted">
-                            Cancelar
-                        </button>
-                        <button type="submit" :disabled="form.processing" class="rounded-md bg-stone-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-stone-800 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200">
-                            {{ form.processing ? 'Guardando...' : 'Guardar' }}
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
         

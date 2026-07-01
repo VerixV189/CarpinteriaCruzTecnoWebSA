@@ -25,6 +25,11 @@ class TipoController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        return Inertia::render('Tipos/Create');
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -35,7 +40,14 @@ class TipoController extends Controller
 
         Tipo::create($request->all());
 
-        return redirect()->back()->with('success', 'Tipo de mueble creado exitosamente.');
+        return redirect()->route('tipos.index')->with('success', 'Tipo de mueble creado exitosamente.');
+    }
+
+    public function edit(Tipo $tipo)
+    {
+        return Inertia::render('Tipos/Edit', [
+            'tipo' => $tipo
+        ]);
     }
 
     public function update(Request $request, Tipo $tipo)
@@ -48,7 +60,7 @@ class TipoController extends Controller
 
         $tipo->update($request->all());
 
-        return redirect()->back()->with('success', 'Tipo de mueble actualizado exitosamente.');
+        return redirect()->route('tipos.index')->with('success', 'Tipo de mueble actualizado exitosamente.');
     }
 
     public function destroy(Tipo $tipo)

@@ -142,9 +142,9 @@ const deleteRole = (id: number) => {
                                 <td class="p-4">
                                     <span 
                                         class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                                        :class="rol.estado === 'activo' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/30 dark:text-red-400'"
+                                        :class="rol.estado === 'Activo' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/30 dark:text-red-400'"
                                     >
-                                        {{ rol.estado === 'activo' ? 'Activo' : 'Inactivo' }}
+                                        {{ rol.estado === 'Activo' ? 'Activo' : 'Inactivo' }}
                                     </span>
                                 </td>
                                 <td class="p-4 text-right whitespace-nowrap" v-if="currentUserRole === 1">

@@ -63,13 +63,14 @@ class RolController extends Controller
 
         $request->validate([
             'nombre' => 'required|string|max:255|unique:roles,nombre',
+            'estado' => 'required|string|in:Activo,Inactivo',
             'permisos' => 'nullable|array',
             'permisos.*' => 'exists:permisos,id',
         ]);
 
         $rol = Rol::create([
             'nombre' => $request->nombre,
-            'estado' => 1
+            'estado' => $request->estado
         ]);
 
         if ($request->has('permisos')) {
@@ -96,12 +97,14 @@ class RolController extends Controller
 
         $request->validate([
             'nombre' => 'required|string|max:255|unique:roles,nombre,' . $role->id,
+            'estado' => 'required|string|in:Activo,Inactivo',
             'permisos' => 'nullable|array',
             'permisos.*' => 'exists:permisos,id',
         ]);
 
         $role->update([
-            'nombre' => $request->nombre
+            'nombre' => $request->nombre,
+            'estado' => $request->estado
         ]);
 
         if ($request->has('permisos')) {
