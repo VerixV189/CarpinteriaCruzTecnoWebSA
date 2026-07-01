@@ -21,3 +21,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+fix-api-routes.cjs
+fix-routes.cjs
+

@@ -20,7 +20,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/carpinteros', {
+    form.post(route('carpinteros.store'), {
         preserveScroll: true,
     });
 };

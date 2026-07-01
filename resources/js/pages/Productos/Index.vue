@@ -60,7 +60,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/productos', { search: value }, {
+        router.get(route('productos.index'), { search: value }, {
             preserveState: true,
             replace: true
         });
@@ -136,7 +136,7 @@ const saveProducto = () => {
             forceFormData: true,
         });
     } else {
-        form.post('/productos', {
+        form.post(route('productos.store'), {
             onSuccess: () => closeModal(),
         });
     }
@@ -147,7 +147,7 @@ const pendingDeleteId = ref<number | null>(null);
 
 const confirmDelete = () => {
     if (pendingDeleteId.value !== null) {
-        router.delete(`/productos/${pendingDeleteId.value}`);
+        router.delete(route('productos.destroy', pendingDeleteId.value));
         confirmOpen.value = false;
         pendingDeleteId.value = null;
     }

@@ -47,7 +47,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/bitacoras', { search: value }, {
+        router.get(route('bitacoras.index'), { search: value }, {
             preserveState: true,
             replace: true
         });

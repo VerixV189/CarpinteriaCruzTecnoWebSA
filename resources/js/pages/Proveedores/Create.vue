@@ -17,7 +17,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/proveedores', {
+    form.post(route('proveedores.store'), {
         preserveScroll: true,
     });
 };

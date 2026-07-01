@@ -43,7 +43,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/carpinteros', { search: value }, {
+        router.get(route('carpinteros.index'), { search: value }, {
             preserveState: true,
             replace: true
         });
@@ -69,7 +69,7 @@ const pendingDeleteId = ref<number | null>(null);
 
 const confirmDelete = () => {
     if (pendingDeleteId.value !== null) {
-        router.delete(`/carpinteros/${pendingDeleteId.value}`, { preserveScroll: true });
+        router.delete(route('carpinteros.destroy', pendingDeleteId.value), { preserveScroll: true });
         confirmOpen.value = false;
         pendingDeleteId.value = null;
     }

@@ -70,7 +70,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/ventas', { search: value }, {
+        router.get(route('ventas.index'), { search: value }, {
             preserveState: true,
             replace: true
         });

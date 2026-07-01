@@ -41,7 +41,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/insumos', { search: value }, {
+        router.get(route('insumos.index'), { search: value }, {
             preserveState: true,
             replace: true
         });
@@ -63,7 +63,7 @@ const pendingDeleteId = ref<number | null>(null);
 
 const confirmDelete = () => {
     if (pendingDeleteId.value !== null) {
-        router.delete(`/insumos/${pendingDeleteId.value}`, {
+        router.delete(route('insumos.destroy', pendingDeleteId.value), {
             preserveScroll: true,
         });
         confirmOpen.value = false;

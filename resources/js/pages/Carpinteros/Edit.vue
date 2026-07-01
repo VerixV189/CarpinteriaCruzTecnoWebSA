@@ -24,7 +24,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(`/carpinteros/${props.carpintero.id}`, {
+    form.put(route('carpinteros.update', props.carpintero.id), {
         preserveScroll: true,
     });
 };

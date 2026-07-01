@@ -20,7 +20,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/insumos', {
+    form.post(route('insumos.store'), {
         preserveScroll: true,
     });
 };

@@ -40,7 +40,7 @@ const removeImage = (index: number) => {
 };
 
 const submit = () => {
-    form.post('/cotizaciones', {
+    form.post(route('cotizaciones.store'), {
         forceFormData: true,
         onSuccess: () => {
             // Vue redirigirá o limpiará

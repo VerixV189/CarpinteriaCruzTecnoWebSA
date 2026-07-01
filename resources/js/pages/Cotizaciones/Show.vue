@@ -65,7 +65,7 @@ const showPaymentDialog = ref(false);
 const cambiarEstado = (nuevoEstado: string) => {
     if (nuevoEstado === 'Rechazada') {
         estadoForm.estado = 'Rechazada';
-        estadoForm.put(`/cotizaciones/${props.cotizacion.id}/estado`, {
+        estadoForm.put(route('cotizaciones.estado.update', props.cotizacion.id), {
             preserveScroll: true,
         });
     } else {
@@ -75,7 +75,7 @@ const cambiarEstado = (nuevoEstado: string) => {
 
 const confirmarAprobacion = () => {
     estadoForm.estado = 'Aprobada';
-    estadoForm.put(`/cotizaciones/${props.cotizacion.id}/estado`, {
+    estadoForm.put(route('cotizaciones.estado.update', props.cotizacion.id), {
         preserveScroll: true,
         onSuccess: () => {
             showPaymentDialog.value = false;
@@ -93,7 +93,7 @@ const enviarAlCliente = () => {
         precio: d.precio
     }));
     
-    enviarForm.post(`/cotizaciones/${props.cotizacion.id}/enviar_y_guardar`, {
+    enviarForm.post(route('cotizaciones.enviar_y_guardar', props.cotizacion.id), {
         preserveScroll: true,
         onSuccess: () => {
             detallesLocales.value = [];

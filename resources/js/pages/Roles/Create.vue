@@ -20,7 +20,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/roles', {
+    form.post(route('roles.store'), {
         preserveScroll: true,
     });
 };

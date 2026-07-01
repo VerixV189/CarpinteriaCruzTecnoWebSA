@@ -16,7 +16,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/permisos', {
+    form.post(route('permisos.store'), {
         preserveScroll: true,
     });
 };

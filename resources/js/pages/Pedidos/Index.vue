@@ -76,7 +76,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/pedidos', { search: value }, {
+        router.get(route('pedidos.index'), { search: value }, {
             preserveState: true,
             replace: true
         });

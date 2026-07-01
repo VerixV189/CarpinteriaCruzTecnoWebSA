@@ -37,7 +37,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/tipos', { search: value }, {
+        router.get(route('tipos.index'), { search: value }, {
             preserveState: true,
             replace: true
         });
@@ -89,11 +89,11 @@ const closeModal = () => {
 
 const saveTipo = () => {
     if (isEditing.value && currentId.value) {
-        form.put(`/tipos/${currentId.value}`, {
+        form.put(route('tipos.update', currentId.value), {
             onSuccess: () => closeModal(),
         });
     } else {
-        form.post('/tipos', {
+        form.post(route('tipos.store'), {
             onSuccess: () => closeModal(),
         });
     }
@@ -104,7 +104,7 @@ const pendingDeleteId = ref<number | null>(null);
 
 const confirmDelete = () => {
     if (pendingDeleteId.value !== null) {
-        router.delete(`/tipos/${pendingDeleteId.value}`, {
+        router.delete(route('tipos.destroy', pendingDeleteId.value), {
             preserveScroll: true
         });
         confirmOpen.value = false;

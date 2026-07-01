@@ -21,7 +21,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(`/roles/${props.role.id}`, {
+    form.put(route('roles.update', props.role.id), {
         preserveScroll: true,
     });
 };

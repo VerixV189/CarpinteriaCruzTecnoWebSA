@@ -31,7 +31,7 @@ const form = useForm({
 
 const submit = () => {
     // Usamos el helper de rutas de Laravel si está disponible (Ziggy), si no apuntamos a /usuarios
-    form.post('/usuarios', {
+    form.post(route('usuarios.store'), {
         onSuccess: () => {
             // El backend hará un redirect, no necesitamos hacer nada más aquí
         }

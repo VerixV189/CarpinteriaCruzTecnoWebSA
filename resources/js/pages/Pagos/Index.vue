@@ -64,7 +64,7 @@ let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-        router.get('/pagos', { search: value }, {
+        router.get(route('pagos.index'), { search: value }, {
             preserveState: true,
             replace: true
         });
@@ -104,7 +104,7 @@ const procesarPagoFacil = async () => {
     qrImageBase64.value = null; // Reiniciar QR anterior
 
     try {
-        const response = await axios.post(`/pagos/${pagoSeleccionado.value.id}/pagofacil`, {
+        const response = await axios.post(route('pagos.pagofacil', pagoSeleccionado.value.id), {
             metodo: pagoFacilForm.metodo
         });
 
@@ -130,7 +130,7 @@ const startPolling = (pagoId: number) => {
     stopPolling();
     pollingInterval = window.setInterval(async () => {
         try {
-            const { data } = await axios.get(`/pagos/${pagoId}/status`);
+            const { data } = await axios.get(route('pagos.status', pagoId));
             if (data.estado.toLowerCase() === 'pagado') {
                 cerrarModalPago();
                 refreshPage();
@@ -163,7 +163,7 @@ const pendingPagoId = ref<number | null>(null);
 
 const confirmCobro = () => {
     if (pendingPagoId.value !== null) {
-        efectivoForm.put(`/pagos/${pendingPagoId.value}/efectivo`, {
+        efectivoForm.put(route('pagos.efectivo', pendingPagoId.value), {
             preserveScroll: true
         });
         confirmOpen.value = false;
