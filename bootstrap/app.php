@@ -24,5 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $exception, \Illuminate\Http\Request $request) {
+            if ($response->getStatusCode() === 419) {
+                return back()->with([
+                    'error' => 'La página expiró por inactividad. Por favor, intenta de nuevo.',
+                ]);
+            }
+            return $response;
+        });
     })->create();
