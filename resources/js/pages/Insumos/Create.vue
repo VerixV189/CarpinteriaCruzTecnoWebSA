@@ -9,9 +9,9 @@ defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Insumos', href: '/insumos' },
-    { title: 'Nuevo', href: '/insumos/create' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Insumos', href: route('insumos.index') },
+    { title: 'Nuevo', href: route('insumos.create') },
 ];
 
 const form = useForm({
@@ -32,7 +32,7 @@ const submit = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-6 w-full max-w-2xl mx-auto space-y-6">
             <div class="flex items-center gap-4">
-                <Link href="/insumos" class="p-2 rounded-md hover:bg-muted transition-colors">
+                <Link :href="route('insumos.index')" class="p-2 rounded-md hover:bg-muted transition-colors">
                     <ArrowLeft class="w-5 h-5" />
                 </Link>
                 <div>
@@ -63,7 +63,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t">
-                        <Link href="/insumos" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <Link :href="route('insumos.index')" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
                             Cancelar
                         </Link>
                         <button type="submit" :disabled="form.processing" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors">

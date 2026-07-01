@@ -54,8 +54,8 @@ const calcularTotal = (cotizacion: Cotizacion) => {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Cotizaciones', href: '/cotizaciones' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Cotizaciones', href: route('cotizaciones.index') },
 ];
 
 const searchQuery = ref(props.filters?.search || '');
@@ -96,7 +96,7 @@ const refreshPage = () => {
                 <!-- Solo el Cliente (rol 2) puede solicitar nuevas cotizaciones -->
                 <Link
                     v-if="currentUserRole === 2"
-                    href="/cotizaciones/create"
+                    :href="route('cotizaciones.create')"
                     class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
                 >
                     Solicitar Cotización

@@ -40,7 +40,7 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Marketplace', href: '/marketplace' },
+    { title: 'Marketplace', href: route('marketplace.index') },
 ];
 
 const form = useForm({

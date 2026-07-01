@@ -26,8 +26,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Roles', href: '/roles' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Roles', href: route('roles.index') },
 ];
 
 const searchQuery = ref(props.filters?.search || '');
@@ -86,7 +86,7 @@ const deleteRole = (id: number) => {
                 </div>
                 <Link
                     v-if="currentUserRole === 1"
-                    href="/roles/create"
+                    :href="route('roles.create')"
                     class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors"
                 >
                     <Plus class="mr-2 h-4 w-4" /> Nuevo Rol

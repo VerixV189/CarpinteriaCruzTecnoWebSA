@@ -9,8 +9,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Roles', href: '/roles' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Roles', href: route('roles.index') },
     { title: 'Ver Detalles', href: `/roles/${props.role.id}` },
 ];
 </script>
@@ -22,7 +22,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="p-6 w-full max-w-4xl mx-auto space-y-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Link href="/roles" class="p-2 rounded-md hover:bg-muted transition-colors">
+                    <Link :href="route('roles.index')" class="p-2 rounded-md hover:bg-muted transition-colors">
                         <ArrowLeft class="w-5 h-5" />
                     </Link>
                     <div>

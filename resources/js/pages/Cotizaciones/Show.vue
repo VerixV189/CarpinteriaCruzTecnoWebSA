@@ -13,8 +13,8 @@ const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Cotizaciones', href: '/cotizaciones' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Cotizaciones', href: route('cotizaciones.index') },
     { title: 'Detalles', href: `/cotizaciones/${props.cotizacion.id}` },
 ];
 
@@ -110,7 +110,7 @@ const enviarAlCliente = () => {
             <!-- HEADER MAESTRO -->
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Link href="/cotizaciones" class="p-2 rounded-md hover:bg-muted transition-colors">
+                    <Link :href="route('cotizaciones.index')" class="p-2 rounded-md hover:bg-muted transition-colors">
                         <ArrowLeft class="w-5 h-5" />
                     </Link>
                     <div>

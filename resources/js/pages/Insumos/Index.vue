@@ -30,8 +30,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Insumos', href: '/insumos' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Insumos', href: route('insumos.index') },
 ];
 
 const searchQuery = ref(props.filters?.search || '');
@@ -87,7 +87,7 @@ const deleteInsumo = (id: number) => {
                     <h1 class="text-2xl font-bold text-foreground">Gestión de Insumos</h1>
                     <p class="text-sm text-muted-foreground">Listado de insumos y materiales y sus respectivos proveedores.</p>
                 </div>
-                <Link href="/insumos/create" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors">
+                <Link :href="route('insumos.create')" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors">
                     Crear Insumo
                 </Link>
             </div>

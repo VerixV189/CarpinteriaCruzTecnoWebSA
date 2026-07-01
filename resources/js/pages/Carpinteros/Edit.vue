@@ -9,8 +9,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Carpinteros', href: '/carpinteros' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Carpinteros', href: route('carpinteros.index') },
     { title: 'Editar', href: `/carpinteros/${props.carpintero.id}/edit` },
 ];
 
@@ -36,7 +36,7 @@ const submit = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-6 w-full max-w-2xl mx-auto space-y-6">
             <div class="flex items-center gap-4">
-                <Link href="/carpinteros" class="p-2 rounded-md hover:bg-muted transition-colors">
+                <Link :href="route('carpinteros.index')" class="p-2 rounded-md hover:bg-muted transition-colors">
                     <ArrowLeft class="w-5 h-5" />
                 </Link>
                 <div>
@@ -94,7 +94,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex justify-end gap-3 pt-4 border-t">
-                        <Link href="/carpinteros" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <Link :href="route('carpinteros.index')" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors">
                             Cancelar
                         </Link>
                         <button type="submit" :disabled="form.processing" class="inline-flex items-center justify-center rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-zinc-800 transition-colors">

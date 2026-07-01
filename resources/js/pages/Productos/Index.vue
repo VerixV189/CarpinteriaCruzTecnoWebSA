@@ -49,8 +49,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Productos', href: '/productos' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Productos', href: route('productos.index') },
 ];
 
 const searchQuery = ref(props.filters?.search || '');

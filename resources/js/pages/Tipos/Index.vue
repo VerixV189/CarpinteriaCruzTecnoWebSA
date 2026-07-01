@@ -26,8 +26,8 @@ const props = defineProps<{
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Tipos de Mueble', href: '/tipos' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Tipos de Mueble', href: route('tipos.index') },
 ];
 
 const searchQuery = ref(props.filters?.search || '');

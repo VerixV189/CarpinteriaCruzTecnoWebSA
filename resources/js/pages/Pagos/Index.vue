@@ -53,8 +53,8 @@ const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user.rol_id);
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Pagos', href: '/pagos' },
+    { title: 'Dashboard', href: route('dashboard') },
+    { title: 'Pagos', href: route('pagos.index') },
 ];
 
 const searchQuery = ref(props.filters?.search || '');

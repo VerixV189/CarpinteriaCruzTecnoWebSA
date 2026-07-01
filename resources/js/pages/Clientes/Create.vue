@@ -6,15 +6,15 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: '/dashboard',
+        href: route('dashboard'),
     },
     {
         title: 'Clientes',
-        href: '/clientes',
+        href: route('clientes.index'),
     },
     {
         title: 'Nuevo',
-        href: '/clientes/create',
+        href: route('clientes.create'),
     },
 ];
 
