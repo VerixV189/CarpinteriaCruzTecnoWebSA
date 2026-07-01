@@ -21,6 +21,10 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 const currentPath = window.location.pathname;
+
+const isActive = (href: string) => {
+    return currentPath === new URL(href, window.location.origin).pathname;
+};
 </script>
 
 <template>
@@ -34,7 +38,7 @@ const currentPath = window.location.pathname;
                         v-for="item in sidebarNavItems"
                         :key="item.href"
                         variant="ghost"
-                        :class="['w-full justify-start', { 'bg-muted': currentPath === new URL(item.href, window.location.origin).pathname }]"
+                        :class="['w-full justify-start', { 'bg-muted': isActive(item.href) }]"
                         as-child
                     >
                         <Link :href="item.href">
