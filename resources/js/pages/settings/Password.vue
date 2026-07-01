@@ -18,10 +18,10 @@ interface Props {
 
 defineProps<Props>();
 
-const breadcrumbItems: BreadcrumbItem[] = [
+const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Password settings',
-        href: '/settings/password',
+        title: 'Contraseña',
+        href: route('password.edit'),
     },
 ];
 
@@ -58,7 +58,7 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbItems">
+    <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Profile settings" />
 
         <SettingsLayout>

@@ -108,7 +108,7 @@ defineProps<{
             <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
                 <div class="space-y-4">
                     <div class="flex items-center gap-2">
-                        <img src="/images/logo.png" alt="Mueblería Cruz Logo" class="h-6 w-6 object-contain rounded-md" />
+                        <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-6 w-6 object-contain rounded-md" />
                         <span class="text-lg font-bold tracking-tight text-stone-900 dark:text-white">Mueblería Cruz</span>
                     </div>
                     <p class="text-xs text-stone-500 dark:text-stone-400">

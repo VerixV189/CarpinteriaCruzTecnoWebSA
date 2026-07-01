@@ -97,7 +97,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <div class="relative overflow-hidden rounded-2xl border border-amber-200 dark:border-amber-900 bg-gradient-to-br from-amber-500/10 to-amber-600/5 dark:from-amber-950/20 p-6 flex flex-col justify-between min-h-[220px]">
                     <div class="space-y-2">
                         <div class="flex items-center gap-2">
-                            <img src="/images/logo.png" alt="Mueblería Cruz Logo" class="h-5 w-5 object-contain rounded-md" />
+                            <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-5 w-5 object-contain rounded-md" />
                             <span class="font-semibold text-sm text-stone-900 dark:text-white">Mueblería Cruz</span>
                         </div>
                         <h2 class="text-xl font-bold text-stone-900 dark:text-white">¡Bienvenido al Sistema de Gestión!</h2>

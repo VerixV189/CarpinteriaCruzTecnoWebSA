@@ -22,7 +22,7 @@ defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Mi Perfil',
-        href: '/settings/profile',
+        href: route('profile.edit'),
     },
 ];
 
