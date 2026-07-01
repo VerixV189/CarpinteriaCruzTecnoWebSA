@@ -352,7 +352,7 @@ const cobrarEfectivo = (pago: Pago) => {
                                         {{ pago.estado }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-right">
+                                <td class="p-4 text-right whitespace-nowrap">
                                     <div v-if="pago.estado.toLowerCase() === 'pendiente'" class="flex justify-end gap-2">
                                         <button v-if="currentUserRole === 1" @click="cobrarEfectivo(pago)" :disabled="efectivoForm.processing" class="inline-flex items-center justify-center rounded-md border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/40 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 shadow-sm hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
                                             <Banknote class="w-3.5 h-3.5 mr-1" /> Cobrar en Efectivo

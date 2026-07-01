@@ -127,19 +127,19 @@ const submit = () => {
 
                     <div v-if="mustVerifyEmail && !user.email_verified_at">
                         <p class="mt-2 text-sm text-neutral-800">
-                            Your email address is unverified.
+                            Tu dirección de correo electrónico no está verificada.
                             <Link
                                 :href="route('verification.send')"
                                 method="post"
                                 as="button"
                                 class="focus:outline-hidden rounded-md text-sm text-neutral-600 underline hover:text-neutral-900 focus:ring-2 focus:ring-offset-2"
                             >
-                                Click here to re-send the verification email.
+                                Haz clic aquí para reenviar el correo electrónico de verificación.
                             </Link>
                         </p>
 
                         <div v-if="status === 'verification-link-sent'" class="mt-2 text-sm font-medium text-green-600">
-                            A new verification link has been sent to your email address.
+                            Se ha enviado un nuevo enlace de verificación a tu dirección de correo electrónico.
                         </div>
                     </div>
 

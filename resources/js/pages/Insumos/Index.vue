@@ -139,15 +139,13 @@ const deleteInsumo = (id: number) => {
                                 <td class="p-4 font-semibold">#{{ insumo.id }}</td>
                                 <td class="p-4 font-medium">{{ insumo.nombre }}</td>
                                 <td class="p-4">{{ insumo.proveedor.nombre_empresa }}</td>
-                                <td class="p-4 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <Link :href="route('insumos.edit', insumo.id)" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
-                                            <Edit class="h-3.5 w-3.5" />
-                                        </Link>
-                                        <button @click="deleteInsumo(insumo.id)" class="inline-flex items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-red-100">
-                                            <Trash2 class="h-3.5 w-3.5" />
-                                        </button>
-                                    </div>
+                                <td class="p-4 text-right whitespace-nowrap">
+                                    <Link :href="route('insumos.edit', insumo.id)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
+                                        <Edit class="h-4 w-4 inline" />
+                                    </Link>
+                                        <button @click="deleteInsumo(insumo.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                        <Trash2 class="h-4 w-4 inline" />
+                                    </button>
                                 </td>
                             </tr>
                         </tbody>

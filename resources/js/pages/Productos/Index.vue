@@ -335,14 +335,14 @@ const saveInsumos = () => {
                                         {{ producto.estado }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-right">
+                                <td class="p-4 text-right whitespace-nowrap">
                                     <button @click="openInsumosModal(producto)" class="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 mr-3 cursor-pointer" title="Asociar Insumos">
                                         <Boxes class="h-4 w-4 inline" />
                                     </button>
-                                    <button @click="openEditModal(producto)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3 cursor-pointer">
+                                    <button @click="openEditModal(producto)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3">
                                         <Edit class="h-4 w-4 inline" />
                                     </button>
-                                    <button @click="deleteProducto(producto.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 cursor-pointer">
+                                    <button @click="deleteProducto(producto.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                                         <Trash2 class="h-4 w-4 inline" />
                                     </button>
                                 </td>

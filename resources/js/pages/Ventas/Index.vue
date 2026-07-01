@@ -186,10 +186,9 @@ const totalPagado = computed(() => {
                                 <td class="p-4 font-bold text-green-600 dark:text-green-500">
                                     Bs. {{ parseFloat(venta.total_costo).toFixed(2) }}
                                 </td>
-                                <td class="p-4 text-center">
-                                    <button @click="openDetails(venta)" class="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-3 py-1.5 rounded-md transition-colors">
-                                        <Eye class="h-3.5 w-3.5" />
-                                        Detalles
+                                <td class="p-4 text-center whitespace-nowrap">
+                                    <button @click="openDetails(venta)" class="text-stone-600 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-300" title="Ver Detalles">
+                                        <Eye class="h-4 w-4 inline" />
                                     </button>
                                 </td>
                             </tr>

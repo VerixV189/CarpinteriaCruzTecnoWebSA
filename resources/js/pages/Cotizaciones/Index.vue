@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
-import { RefreshCw } from 'lucide-vue-next';
+import { RefreshCw, Eye } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ReportExportButton from '@/components/ReportExportButton.vue';
 
@@ -214,12 +214,13 @@ const refreshPage = () => {
                                         {{ cotizacion.estado }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-right">
+                                <td class="p-4 text-right whitespace-nowrap">
                                     <Link
                                         :href="route('cotizaciones.show', cotizacion.id)"
-                                        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                        class="text-stone-600 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-300 mr-3"
+                                        title="Ver Detalles"
                                     >
-                                        Ver Detalles
+                                        <Eye class="h-4 w-4 inline" />
                                     </Link>
                                 </td>
                             </tr>

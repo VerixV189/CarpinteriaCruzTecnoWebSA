@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import { RefreshCw } from 'lucide-vue-next';
+import { RefreshCw, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import ReportExportButton from '@/components/ReportExportButton.vue';
@@ -174,18 +174,18 @@ const deleteCliente = (id: number) => {
                                 <td class="p-4">{{ cliente.nit_facturacion }}</td>
                                 <td class="p-4">{{ cliente.razon_social }}</td>
                                 <td class="p-4">{{ cliente.direccion_envio }}</td>
-                                <td class="p-4 text-right space-x-2">
+                                <td class="p-4 text-right whitespace-nowrap">
                                     <Link
                                         :href="route('clientes.edit', { cliente: cliente.id })"
-                                        class="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
                                     >
-                                        Editar
+                                        <Edit class="h-4 w-4 inline" />
                                     </Link>
                                     <button
                                         @click="deleteCliente(cliente.id)"
-                                        class="inline-flex items-center justify-center rounded-md bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground shadow-sm transition-colors hover:bg-destructive/90"
+                                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                                     >
-                                        Eliminar
+                                        <Trash2 class="h-4 w-4 inline" />
                                     </button>
                                 </td>
                             </tr>
