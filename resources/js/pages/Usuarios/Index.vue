@@ -5,6 +5,7 @@ import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Rol {
     id: number;
@@ -19,6 +20,7 @@ interface Usuario {
     telefono: string | null;
     estado: string;
     rol: Rol | null;
+    foto: string | null;
 }
 
 const props = defineProps<{
@@ -38,10 +40,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const searchQuery = ref(props.filters?.search || '');
 
-let searchTimeout: ReturnType<typeof setTimeout>;
+const searchTimeout: ReturnType<typeof setTimeout> = null as any;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
+    setTimeout(() => {
         router.get(route('usuarios.index'), { search: value }, {
             preserveState: true,
             replace: true
@@ -92,6 +94,19 @@ const refreshPage = () => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="usuarios.data"
+                    :headers="['Nombre Completo', 'Email', 'Teléfono', 'Rol', 'Estado']"
+                    :keys="[
+                        (item) => `${item.nombre} ${item.apellido}`,
+                        'email',
+                        (item) => item.telefono || '-',
+                        (item) => item.rol?.nombre || 'Sin Rol',
+                        'estado'
+                    ]"
+                    filename="reporte-usuarios"
+                    title="Reporte de Usuarios"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
@@ -99,6 +114,7 @@ const refreshPage = () => {
                     <table class="w-full caption-bottom text-sm">
                         <thead class="border-b border-sidebar-border bg-muted/50">
                             <tr class="text-left font-medium text-muted-foreground">
+                                <th class="p-4">Foto</th>
                                 <th class="p-4">Nombre Completo</th>
                                 <th class="p-4">Email</th>
                                 <th class="p-4">Teléfono</th>
@@ -108,11 +124,17 @@ const refreshPage = () => {
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
                             <tr v-if="usuarios.data.length === 0">
-                                <td colspan="5" class="p-4 text-center text-muted-foreground">
+                                <td colspan="6" class="p-4 text-center text-muted-foreground">
                                     No se encontraron usuarios.
                                 </td>
                             </tr>
                             <tr v-for="usuario in usuarios.data" :key="usuario.id" class="hover:bg-muted/50 transition-colors">
+                                <td class="p-4">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-stone-150 dark:bg-stone-800 flex items-center justify-center border border-stone-250 dark:border-stone-700">
+                                        <img v-if="usuario.foto" :src="usuario.foto" class="w-full h-full object-cover" />
+                                        <span v-else class="text-stone-500 font-bold text-xs uppercase">{{ usuario.nombre[0] }}{{ usuario.apellido[0] }}</span>
+                                    </div>
+                                </td>
                                 <td class="p-4 font-medium">{{ usuario.nombre }} {{ usuario.apellido }}</td>
                                 <td class="p-4">{{ usuario.email }}</td>
                                 <td class="p-4">{{ usuario.telefono || '-' }}</td>

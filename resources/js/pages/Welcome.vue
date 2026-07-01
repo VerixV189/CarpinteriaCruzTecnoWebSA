@@ -29,20 +29,6 @@ defineProps<{
                     <p class="text-lg text-stone-600 dark:text-stone-300 max-w-xl">
                         En Mueblería Cruz creamos soluciones exclusivas de mobiliario, cocinas a medida, vestidores y estructuras de madera con acabados premium y durabilidad garantizada.
                     </p>
-                    <div class="flex flex-wrap gap-4">
-                        <Link
-                            :href="route('register')"
-                            class="inline-flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all"
-                        >
-                            <KidEmoji /> Solicitar Cotización
-                        </Link>
-                        <Link
-                            :href="route('login')"
-                            class="inline-flex items-center gap-2 justify-center rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 px-6 py-3 text-base font-semibold hover:bg-stone-50 dark:hover:bg-stone-700 transition-all shadow-sm"
-                        >
-                            <KidEmoji /> <LogIn class="h-4 w-4" /> Acceder
-                        </Link>
-                    </div>
                 </div>
 
                 <!-- Visual Mockup Card -->

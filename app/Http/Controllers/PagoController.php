@@ -29,8 +29,12 @@ class PagoController extends Controller
 
         $query = Pago::with([
             'venta.pedido.cliente.usuario',
-            'venta.pedido.cotizacion.cliente.usuario'
+            'venta.pedido.cotizacion.cliente.usuario',
+            'venta.pagos'
         ]);
+
+        // Solo mostrar los recibos que ya están pagados
+        $query->where('estado', 'Pagado');
 
         // Si es cliente (2), solo ve los suyos
         if ($user->rol_id === 2) {
@@ -52,6 +56,9 @@ class PagoController extends Controller
                   ->orWhereHas('venta.pedido.cotizacion.cliente.usuario', function($qUser) use ($search) {
                       $qUser->where('nombre', 'like', "%{$search}%")
                             ->orWhere('apellido', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('venta.pedido', function($qPedido) use ($search) {
+                      $qPedido->where('codigo', 'like', "%{$search}%");
                   });
             });
         }

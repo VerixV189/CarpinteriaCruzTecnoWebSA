@@ -18,7 +18,8 @@ class PedidoController extends Controller
         $query = Pedido::with([
             'cliente.usuario',
             'cotizacion.cliente.usuario', 
-            'detallePedidos.producto.imagenes'
+            'detallePedidos.producto.imagenes',
+            'venta.pagos'
         ])->latest();
 
         if ($user && $user->rol_id === 2) { // Cliente

@@ -34,7 +34,12 @@ Route::get('dashboard', function () {
             ->groupBy('modelo_tipo')
             ->orderByDesc('total')
             ->limit(5)
-            ->get()
+            ->get(),
+        'reportes' => [
+            'ventas_por_tipo' => App\Models\Venta::select('tipo', Illuminate\Support\Facades\DB::raw('count(*) as total'))->groupBy('tipo')->get(),
+            'pagos_por_estado' => App\Models\Pago::select('estado', Illuminate\Support\Facades\DB::raw('count(*) as total'))->groupBy('estado')->get(),
+            'ventas_recientes' => App\Models\Venta::with('pedido.cliente.usuario')->latest()->limit(5)->get()
+        ]
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 

@@ -29,7 +29,7 @@ export function applyGlobalPreferences() {
     document.documentElement.classList.add(`theme-${savedTheme}`);
 
     // 1b. Color del tema
-    const defaultColor = savedTheme === 'ninos' ? 'color-ninos-rosa' : (savedTheme === 'jovenes' ? 'color-jovenes-morado' : 'color-adultos-caoba');
+    const defaultColor = savedTheme === 'ninos' ? 'color-ninos-rosavioleta' : (savedTheme === 'jovenes' ? 'color-jovenes-petroleo' : 'color-adultos-caoba');
     const savedColor = localStorage.getItem('theme_color') || defaultColor;
     
     // Remover todas las posibles clases de color antes de inyectar la activa
@@ -80,7 +80,7 @@ export function useAppearance() {
 
     // Sincronizar datos del backend a localStorage
     const syncFromUserToLocal = () => {
-        const user = page.props.auth?.user as any;
+        const user = (page.props as any).auth?.user;
         if (user && user.configuracion_tema) {
             const config = user.configuracion_tema;
             
@@ -95,7 +95,7 @@ export function useAppearance() {
 
     // Guardar cambios en backend
     const saveToBackend = (data: any) => {
-        const user = page.props.auth?.user as any;
+        const user = (page.props as any).auth?.user;
         if (user) {
             router.put(route('user.appearance.update'), data, { preserveScroll: true, preserveState: true });
         }
@@ -108,7 +108,7 @@ export function useAppearance() {
         appearance.value = (localStorage.getItem('appearance') as Appearance) || 'system';
         theme.value = localStorage.getItem('theme') || 'adultos';
         
-        const defaultColor = theme.value === 'ninos' ? 'color-ninos-rosa' : (theme.value === 'jovenes' ? 'color-jovenes-morado' : 'color-adultos-caoba');
+        const defaultColor = theme.value === 'ninos' ? 'color-ninos-rosavioleta' : (theme.value === 'jovenes' ? 'color-jovenes-petroleo' : 'color-adultos-caoba');
         themeColor.value = localStorage.getItem('theme_color') || defaultColor;
         
         fontSize.value = localStorage.getItem('font_size') || 'normal';
@@ -128,7 +128,7 @@ export function useAppearance() {
         localStorage.setItem('theme', value);
         
         // Auto default color on age-theme switch
-        const defaultColor = value === 'ninos' ? 'color-ninos-rosa' : (value === 'jovenes' ? 'color-jovenes-morado' : 'color-adultos-caoba');
+        const defaultColor = value === 'ninos' ? 'color-ninos-rosavioleta' : (value === 'jovenes' ? 'color-jovenes-petroleo' : 'color-adultos-caoba');
         themeColor.value = defaultColor;
         localStorage.setItem('theme_color', defaultColor);
         

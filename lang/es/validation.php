@@ -116,6 +116,7 @@ return [
         'password' => 'contraseña',
         'descripcion' => 'descripción',
         'precio' => 'precio',
-        'cantidad' => 'cantidad'
+        'cantidad' => 'cantidad',
+        'foto' => 'foto de perfil'
     ],
 ];

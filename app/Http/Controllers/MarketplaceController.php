@@ -267,6 +267,6 @@ class MarketplaceController extends Controller
             $carrito->detalleCarritos()->delete();
         });
 
-        return redirect()->route('pagos.index')->with('success', 'Compra realizada exitosamente. Puedes revisar tus pagos aquí.');
+        return redirect()->route('pedidos.index')->with('success', 'Compra realizada exitosamente. Puedes revisar tus pedidos aquí.');
     }
 }

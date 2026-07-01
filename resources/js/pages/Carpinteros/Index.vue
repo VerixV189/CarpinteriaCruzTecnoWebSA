@@ -6,6 +6,7 @@ import { ref, watch, computed } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     id: number;
@@ -116,6 +117,18 @@ const deleteCarpintero = (id: number) => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="carpinteros.data"
+                    :headers="['ID', 'Nombre Completo', 'Especialidad', 'Costo Hora']"
+                    :keys="[
+                        'id',
+                        (item) => `${item.usuario.nombre} ${item.usuario.apellido}`,
+                        'especialidad',
+                        (item) => `Bs. ${parseFloat(item.costo_hora).toFixed(2)}`
+                    ]"
+                    filename="reporte-carpinteros"
+                    title="Reporte de Carpinteros"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">

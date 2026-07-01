@@ -6,6 +6,7 @@ import { ref, watch, computed } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Permiso {
     id: number;
@@ -108,6 +109,13 @@ const deletePermiso = (id: number) => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="permisos.data"
+                    :headers="['ID', 'Nombre (Código)', 'Descripción']"
+                    :keys="['id', 'nombre', (item) => item.descripcion || 'Sin descripción']"
+                    filename="reporte-permisos"
+                    title="Reporte de Permisos"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">

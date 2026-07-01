@@ -29,9 +29,21 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->safe()->except('foto'));
 
-        $request->user()->save();
+        if ($request->hasFile('foto')) {
+            // Eliminar foto anterior si existe
+            if ($user->foto) {
+                $oldPath = str_replace('/storage/', '', $user->foto);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            }
+
+            $path = $request->file('foto')->store('fotos', 'public');
+            $user->foto = '/storage/' . $path;
+        }
+
+        $user->save();
 
         return to_route('profile.edit');
     }

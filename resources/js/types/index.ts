@@ -36,7 +36,7 @@ export interface User {
     apellido?: string;
     telefono?: string;
     email: string;
-    avatar?: string;
+    foto?: string;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;

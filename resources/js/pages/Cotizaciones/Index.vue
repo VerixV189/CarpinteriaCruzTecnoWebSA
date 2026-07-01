@@ -5,6 +5,7 @@ import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     id: number;
@@ -119,6 +120,20 @@ const refreshPage = () => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="cotizaciones.data"
+                    :headers="['ID', 'Descripción', 'Cliente', 'Carpintero Asignado', 'Estado', 'Monto Estimado']"
+                    :keys="[
+                        'id',
+                        'descripcion',
+                        (item) => `${item.cliente.usuario.nombre} ${item.cliente.usuario.apellido}`,
+                        (item) => item.carpintero?.usuario ? `${item.carpintero.usuario.nombre} ${item.carpintero.usuario.apellido}` : 'Sin Asignar',
+                        'estado',
+                        (item) => 'Bs. ' + calcularTotal(item).toFixed(2)
+                    ]"
+                    filename="reporte-cotizaciones"
+                    title="Reporte de Cotizaciones"
+                />
             </div>
 
             <!-- VISTA DE TARJETAS PARA EL CLIENTE -->

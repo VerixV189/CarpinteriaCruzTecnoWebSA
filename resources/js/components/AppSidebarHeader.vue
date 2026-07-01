@@ -47,7 +47,7 @@ const { getInitials } = useInitials();
             <!-- Avatar & Role Badge Container -->
             <div class="flex flex-col items-center select-none min-w-10">
                 <Avatar class="h-8 w-8 overflow-hidden rounded-lg border border-sidebar-border/50">
-                    <AvatarImage v-if="auth?.user?.avatar" :src="auth.user.avatar" :alt="auth.user.name" />
+                    <AvatarImage v-if="auth?.user?.foto" :src="auth.user.foto" :alt="auth.user.name" />
                     <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white text-[10px]">
                         {{ getInitials(auth?.user?.name) }}
                     </AvatarFallback>

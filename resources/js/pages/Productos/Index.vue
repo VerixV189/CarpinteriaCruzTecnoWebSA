@@ -6,6 +6,7 @@ import { ref, watch, computed } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2, Image as ImageIcon, Boxes, X } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Tipo {
     id: number;
@@ -81,6 +82,7 @@ const refreshPage = () => {
 const isModalOpen = ref(false);
 const isEditing = ref(false);
 const currentId = ref<number | null>(null);
+const imagePreview = ref<string | null>(null);
 
 const form = useForm({
     tipo_id: '',
@@ -95,6 +97,7 @@ const form = useForm({
 const openCreateModal = () => {
     isEditing.value = false;
     currentId.value = null;
+    imagePreview.value = null;
     form.reset();
     form.clearErrors();
     isModalOpen.value = true;
@@ -111,6 +114,7 @@ const openEditModal = (producto: Producto) => {
     form.descripcion = producto.descripcion;
     form.estado = producto.estado;
     form.imagen = null;
+    imagePreview.value = producto.imagenes && producto.imagenes.length > 0 ? producto.imagenes[0].URL : null;
     isModalOpen.value = true;
 };
 
@@ -121,8 +125,30 @@ const closeModal = () => {
 const handleFileChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     if (target.files && target.files[0]) {
-        form.imagen = target.files[0];
+        const file = target.files[0];
+        
+        // Validar tipo de archivo (sólo png o jpg/jpeg)
+        if (file.type !== 'image/png' && file.type !== 'image/jpeg' && file.type !== 'image/jpg') {
+            alert(`El archivo "${file.name}" no es admitido. Solo se permiten imágenes JPG o PNG.`);
+            target.value = ''; // Limpiar input
+            return;
+        }
+
+        form.imagen = file;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
     }
+};
+
+const removeImage = () => {
+    form.imagen = null;
+    imagePreview.value = null;
+    const input = document.getElementById('imagen-producto-input') as HTMLInputElement;
+    if (input) input.value = '';
 };
 
 const saveProducto = () => {
@@ -249,6 +275,20 @@ const saveInsumos = () => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="productos.data"
+                    :headers="['ID', 'Nombre', 'Precio', 'Stock', 'Categoría/Tipo', 'Estado']"
+                    :keys="[
+                        'id',
+                        'nombre',
+                        (item) => `Bs. ${parseFloat(item.precio).toFixed(2)}`,
+                        'cantidad',
+                        (item) => item.tipo?.nombre || 'General',
+                        'estado'
+                    ]"
+                    filename="reporte-productos"
+                    title="Reporte de Productos en Catálogo"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
@@ -374,11 +414,46 @@ const saveInsumos = () => {
                             <span v-if="form.errors.descripcion" class="text-xs text-red-500">{{ form.errors.descripcion }}</span>
                         </div>
 
-                        <div class="col-span-2">
-                            <label class="mb-1 block text-sm font-medium text-foreground">Imagen del Producto (Opcional)</label>
-                            <input type="file" accept="image/*" @change="handleFileChange" class="w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border-0 file:bg-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-foreground hover:file:bg-muted/80" />
-                            <span v-if="form.errors.imagen" class="text-xs text-red-500">{{ form.errors.imagen }}</span>
-                            <p v-if="isEditing" class="text-xs text-muted-foreground mt-1">Si subes una nueva imagen, reemplazará a la existente.</p>
+                        <div class="col-span-2 space-y-2">
+                            <label class="block text-sm font-medium text-foreground">Imagen del Producto (Opcional)</label>
+                            
+                            <!-- Caja de carga con diseño moderno -->
+                            <div class="border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors rounded-lg p-5 flex flex-col items-center justify-center gap-2 cursor-pointer relative bg-muted/20">
+                                <input
+                                    type="file"
+                                    id="imagen-producto-input"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    @change="handleFileChange"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                />
+                                
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                                
+                                <div class="text-xs font-medium text-foreground text-center">
+                                    Haz clic o arrastra para subir una imagen
+                                </div>
+                                <div class="text-[10px] text-muted-foreground text-center">
+                                    Solo se admiten formatos <span class="font-semibold text-foreground">PNG</span> o <span class="font-semibold text-foreground">JPG</span>
+                                </div>
+                            </div>
+
+                            <!-- Previsualización de la Imagen -->
+                            <div v-if="imagePreview" class="relative mt-2 w-32 h-32 rounded-md overflow-hidden border bg-muted group">
+                                <img :src="imagePreview" class="w-full h-full object-cover" />
+                                <div class="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <button 
+                                        type="button" 
+                                        @click="removeImage" 
+                                        class="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition-transform hover:scale-110"
+                                        title="Eliminar imagen"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <span v-if="form.errors.imagen" class="text-xs text-red-500 block">{{ form.errors.imagen }}</span>
+                            <p v-if="isEditing" class="text-[11px] text-muted-foreground">Si subes una nueva imagen, reemplazará a la existente.</p>
                         </div>
                     </div>
 

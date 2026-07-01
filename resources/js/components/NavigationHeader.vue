@@ -19,7 +19,8 @@ const { getInitials } = useInitials();
 
 <template>
     <!-- Navigation Header -->
-    <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between border-b border-stone-200 dark:border-stone-800">
+    <header class="w-full border-b border-stone-200 dark:border-stone-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
         
         <!-- LEFT SIDE: Mobile Menu & Logo -->
         <div class="flex items-center gap-2 sm:gap-6">
@@ -32,11 +33,11 @@ const { getInitials } = useInitials();
                             <Menu class="h-6 w-6" />
                         </button>
                     </SheetTrigger>
-                    <SheetContent side="left" class="w-[300px] p-6 bg-white dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 flex flex-col justify-between">
+                    <SheetContent side="left" class="w-[300px] p-6 bg-background border-r border-border flex flex-col justify-between">
                         <div class="space-y-6">
-                            <SheetHeader class="flex justify-start text-left border-b border-stone-100 dark:border-stone-800 pb-4">
+                             <SheetHeader class="flex justify-start text-left border-b border-stone-100 dark:border-stone-800 p-6 -mx-6 -mt-6 mb-4 bg-white dark:bg-black rounded-tl-lg">
                                 <div class="flex items-center gap-2">
-                                    <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-6 w-6 object-contain rounded-md" />
+                                    <img :src="(page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-6 w-6 object-contain rounded-md" />
                                     <SheetTitle class="text-lg font-bold text-stone-900 dark:text-white">Mueblería Cruz</SheetTitle>
                                 </div>
                             </SheetHeader>
@@ -84,7 +85,7 @@ const { getInitials } = useInitials();
             <!-- Dropdown para cambiar de espacio (solo Admin o Carpintero) -->
             <DropdownMenu v-if="page.props.auth.user && page.props.auth.user.rol?.nombre !== 'Cliente'">
                 <DropdownMenuTrigger class="flex items-center gap-1 sm:gap-2 outline-none select-none cursor-pointer group">
-                    <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
+                    <img :src="(page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
                     <span class="text-sm sm:text-xl font-bold tracking-tight text-stone-900 dark:text-white group-hover:text-amber-600 transition-colors leading-tight max-w-[80px] sm:max-w-none whitespace-normal text-left">Mueblería Cruz</span>
                     <ChevronsUpDown class="h-4 w-4 text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-200 transition-colors" />
                 </DropdownMenuTrigger>
@@ -104,7 +105,7 @@ const { getInitials } = useInitials();
 
             <!-- Logo y marca estáticos para Clientes e Invitados -->
             <div v-else class="flex items-center gap-1 sm:gap-2 select-none">
-                <img :src="($page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
+                <img :src="(page.props.app_url || '') + '/images/logo.png'" alt="Mueblería Cruz Logo" class="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-md" />
                 <span class="text-sm sm:text-xl font-bold tracking-tight text-stone-900 dark:text-white leading-tight max-w-[80px] sm:max-w-none whitespace-normal">Mueblería Cruz</span>
             </div>
         </div>
@@ -127,7 +128,7 @@ const { getInitials } = useInitials();
                 <!-- Avatar & Role Badge Container -->
                 <div class="flex flex-col items-center select-none min-w-10">
                     <Avatar class="h-8 w-8 overflow-hidden rounded-lg border border-stone-200 dark:border-stone-850">
-                        <AvatarImage v-if="page.props.auth.user.avatar" :src="page.props.auth.user.avatar" :alt="page.props.auth.user.name" />
+                        <AvatarImage v-if="page.props.auth.user.foto" :src="page.props.auth.user.foto" :alt="page.props.auth.user.name" />
                         <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white text-[10px]">
                             {{ getInitials(page.props.auth.user.name) }}
                         </AvatarFallback>
@@ -164,5 +165,6 @@ const { getInitials } = useInitials();
                 </Link>
             </template>
         </nav>
+        </div>
     </header>
 </template>

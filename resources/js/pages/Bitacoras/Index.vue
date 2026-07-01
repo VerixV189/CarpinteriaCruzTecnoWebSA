@@ -5,6 +5,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     nombre: string;
@@ -93,6 +94,19 @@ const refreshPage = () => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="bitacoras.data"
+                    :headers="['Fecha/Hora', 'Usuario', 'Acción', 'Módulo', 'IP']"
+                    :keys="[
+                        (item) => new Date(item.created_at).toLocaleString(),
+                        (item) => item.usuario ? `${item.usuario.nombre} ${item.usuario.apellido}` : 'Sistema / Huesped',
+                        'accion',
+                        'modelo_tipo',
+                        'ip_address'
+                    ]"
+                    filename="reporte-bitacora"
+                    title="Reporte de Bitácora de Auditoría"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">

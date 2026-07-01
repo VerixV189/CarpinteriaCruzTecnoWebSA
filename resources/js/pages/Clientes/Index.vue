@@ -6,6 +6,7 @@ import { ref, watch } from 'vue';
 import { RefreshCw } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     id: number;
@@ -13,6 +14,7 @@ interface Usuario {
     apellido: string;
     email: string;
     telefono: string | null;
+    foto: string | null;
 }
 
 interface Cliente {
@@ -47,10 +49,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const searchQuery = ref(props.filters?.search || '');
 
-let searchTimeout: ReturnType<typeof setTimeout>;
+const searchTimeout: ReturnType<typeof setTimeout> = null as any;
 watch(searchQuery, (value) => {
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
+    setTimeout(() => {
         router.get(route('clientes.index'), { search: value }, {
             preserveState: true,
             replace: true
@@ -120,6 +122,20 @@ const deleteCliente = (id: number) => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="clientes.data"
+                    :headers="['NIT', 'Razón Social', 'Dirección de Envío', 'Nombre Completo', 'Email', 'Teléfono']"
+                    :keys="[
+                        'nit_facturacion',
+                        'razon_social',
+                        'direccion_envio',
+                        (item) => `${item.usuario.nombre} ${item.usuario.apellido}`,
+                        (item) => item.usuario.email,
+                        (item) => item.usuario.telefono || '-'
+                    ]"
+                    filename="reporte-clientes"
+                    title="Reporte de Clientes"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
@@ -127,6 +143,7 @@ const deleteCliente = (id: number) => {
                     <table class="w-full caption-bottom text-sm">
                         <thead class="border-b border-sidebar-border bg-muted/50">
                             <tr class="text-left font-medium text-muted-foreground">
+                                <th class="p-4">Foto</th>
                                 <th class="p-4">Nombre Completo</th>
                                 <th class="p-4">Email</th>
                                 <th class="p-4">Teléfono</th>
@@ -138,11 +155,17 @@ const deleteCliente = (id: number) => {
                         </thead>
                         <tbody class="divide-y divide-sidebar-border">
                             <tr v-if="clientes.data.length === 0">
-                                <td colspan="7" class="p-4 text-center text-muted-foreground">
+                                <td colspan="8" class="p-4 text-center text-muted-foreground">
                                     No se encontraron clientes.
                                 </td>
                             </tr>
                             <tr v-for="cliente in clientes.data" :key="cliente.id" class="hover:bg-muted/50 transition-colors">
+                                <td class="p-4">
+                                    <div class="w-10 h-10 rounded-full overflow-hidden bg-stone-150 dark:bg-stone-800 flex items-center justify-center border border-stone-250 dark:border-stone-700">
+                                        <img v-if="cliente.usuario.foto" :src="cliente.usuario.foto" class="w-full h-full object-cover" />
+                                        <span v-else class="text-stone-500 font-bold text-xs uppercase">{{ cliente.usuario.nombre[0] }}{{ cliente.usuario.apellido[0] }}</span>
+                                    </div>
+                                </td>
                                 <td class="p-4 font-medium">
                                     {{ cliente.usuario.nombre }} {{ cliente.usuario.apellido }}
                                 </td>

@@ -311,6 +311,6 @@ class CotizacionController extends Controller
             }
         });
 
-        return redirect()->back()->with('success', 'Cotización aprobada y pedido generado automáticamente.');
+        return redirect()->route('pedidos.index')->with('success', 'Cotización aprobada y pedido generado automáticamente.');
     }
 }

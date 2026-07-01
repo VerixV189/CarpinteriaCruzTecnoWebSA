@@ -32,6 +32,7 @@ class User extends Authenticatable
         'estado',
         'rol_id',
         'configuracion_tema',
+        'foto',
     ];
 
     /**

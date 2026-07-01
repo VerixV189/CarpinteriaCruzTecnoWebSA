@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property float $subtotal
+ * @property string $estado
+ */
 class Pago extends Model
 {
     protected $fillable = [

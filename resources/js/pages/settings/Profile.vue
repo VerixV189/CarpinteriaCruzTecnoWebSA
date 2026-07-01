@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem, type SharedData, type User } from '@/types';
+import { type BreadcrumbItem, type User } from '@/types';
 
 interface Props {
     mustVerifyEmail: boolean;
@@ -26,18 +26,32 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const page = usePage<SharedData>();
+const page = usePage<any>();
 const user = page.props.auth.user as User;
 
 const form = useForm({
+    _method: 'patch',
     nombre: user.nombre || '',
     apellido: user.apellido || '',
     telefono: user.telefono || '',
     email: user.email || '',
+    foto: null as File | null,
 });
 
+import { ref } from 'vue';
+
+const fotoPreview = ref<string | null>(null);
+
+const onFileChange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+        form.foto = file;
+        fotoPreview.value = URL.createObjectURL(file);
+    }
+};
+
 const submit = () => {
-    form.patch(route('profile.update'), {
+    form.post(route('profile.update'), {
         preserveScroll: true,
     });
 };
@@ -52,6 +66,30 @@ const submit = () => {
                 <HeadingSmall title="Información del perfil" description="Actualiza tu nombre, apellido, teléfono y correo electrónico." />
 
                 <form @submit.prevent="submit" class="space-y-6">
+                    <!-- Foto de Perfil -->
+                    <div class="flex items-center gap-6 pb-6 border-b border-stone-200 dark:border-stone-850">
+                        <div class="relative">
+                            <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-amber-500 bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                                <img v-if="fotoPreview || user.foto" :src="fotoPreview || user.foto" class="w-full h-full object-cover" />
+                                <span v-else class="text-stone-500 font-bold text-xl uppercase">{{ (user.nombre || '')[0] || '' }}{{ (user.apellido || '')[0] || '' }}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1.5">
+                            <Label for="foto" class="cursor-pointer bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all inline-block shadow-sm">
+                                Cambiar Foto
+                            </Label>
+                            <input 
+                                id="foto" 
+                                type="file" 
+                                class="hidden" 
+                                accept="image/*"
+                                @change="onFileChange" 
+                            />
+                            <p class="text-[10px] text-muted-foreground">Formatos admitidos: JPG, PNG. Máximo 2MB.</p>
+                            <InputError class="mt-1" :message="form.errors.foto" />
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="grid gap-2">
                             <Label for="nombre">Nombre</Label>

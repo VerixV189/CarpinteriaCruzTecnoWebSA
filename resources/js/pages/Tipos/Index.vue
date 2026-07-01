@@ -6,6 +6,7 @@ import { ref, watch } from 'vue';
 import { RefreshCw, Plus, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Tipo {
     id: number;
@@ -153,6 +154,13 @@ const deleteTipo = (id: number) => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="tipos.data"
+                    :headers="['ID', 'Nombre', 'Descripción', 'Estado']"
+                    :keys="['id', 'nombre', 'descripcion', 'estado']"
+                    filename="reporte-tipos-mueble"
+                    title="Reporte de Tipos de Mueble"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">

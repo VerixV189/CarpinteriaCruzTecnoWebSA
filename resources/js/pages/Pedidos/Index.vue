@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, router, usePage, useForm } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
-import { RefreshCw, Eye, X, Hammer } from 'lucide-vue-next';
+import axios from 'axios';
+import { RefreshCw, Eye, X, Hammer, CreditCard, QrCode, LoaderCircle } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     nombre: string;
@@ -41,6 +43,21 @@ interface DetallePedido {
     producto: Producto | null;
 }
 
+interface Pago {
+    id: number;
+    subtotal: string;
+    fecha_vencimiento: string;
+    estado: string;
+}
+
+interface Venta {
+    id: number;
+    codigo: string;
+    total_costo: string;
+    tipo: string;
+    pagos?: Pago[];
+}
+
 interface Pedido {
     id: number;
     codigo: string;
@@ -51,6 +68,7 @@ interface Pedido {
     cotizacion: Cotizacion | null;
     cliente_real: Cliente;
     detalle_pedidos: DetallePedido[];
+    venta: Venta | null;
 }
 
 interface PaginatedPedidos {
@@ -109,6 +127,90 @@ const closeModal = () => {
     }, 200);
 };
 
+// Modal de Selección de Cuota a pagar
+const isCuotasModalOpen = ref(false);
+const selectedPedidoForPago = ref<Pedido | null>(null);
+
+const openSelectCuotas = (pedido: Pedido) => {
+    selectedPedidoForPago.value = pedido;
+    isCuotasModalOpen.value = true;
+};
+
+const closeSelectCuotas = () => {
+    isCuotasModalOpen.value = false;
+    selectedPedidoForPago.value = null;
+};
+
+// Modal Pago Fácil (procesamiento del pago)
+const showPagoModal = ref(false);
+const pagoSeleccionado = ref<Pago | null>(null);
+const pagoFacilForm = useForm({
+    metodo: 'QR'
+});
+const isProcessingPagoFacil = ref(false);
+const qrImageBase64 = ref<string | null>(null);
+let pollingInterval: number | null = null;
+
+const abrirPagoDirecto = (pago: Pago) => {
+    pagoSeleccionado.value = pago;
+    showPagoModal.value = true;
+};
+
+const procesarPagoFacil = async () => {
+    if (!pagoSeleccionado.value) return;
+
+    isProcessingPagoFacil.value = true;
+    qrImageBase64.value = null;
+
+    try {
+        const response = await axios.post(route('pagos.pagofacil', { pago: pagoSeleccionado.value.id }), {
+            metodo: pagoFacilForm.metodo
+        });
+
+        if (response.data.qrBase64) {
+            qrImageBase64.value = response.data.qrBase64;
+            startPolling(pagoSeleccionado.value.id);
+        } else {
+            throw new Error("No se recibió la imagen QR");
+        }
+    } catch (error) {
+        console.error("Error al generar QR de Pago Fácil", error);
+        alert("Ocurrió un error al contactar con la API de Pago Fácil.");
+    } finally {
+        isProcessingPagoFacil.value = false;
+    }
+};
+
+const startPolling = (pagoId: number) => {
+    stopPolling();
+    pollingInterval = window.setInterval(async () => {
+        try {
+            const { data } = await axios.get(route('pagos.status', { pago: pagoId }));
+            if (data.estado.toLowerCase() === 'pagado') {
+                cerrarModalPago();
+                closeSelectCuotas();
+                closeModal();
+                router.get(route('pagos.index'));
+            }
+        } catch (e) {
+            console.error('Error polling status', e);
+        }
+    }, 3000);
+};
+
+const stopPolling = () => {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+};
+
+const cerrarModalPago = () => {
+    showPagoModal.value = false;
+    qrImageBase64.value = null;
+    stopPolling();
+};
+
 const page = usePage<any>();
 const currentUserRole = computed(() => page.props.auth.user?.rol_id);
 </script>
@@ -141,6 +243,19 @@ const currentUserRole = computed(() => page.props.auth.user?.rol_id);
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="pedidos.data"
+                    :headers="['Código', 'Cliente', 'Precio Total', 'Entrega Estimada', 'Estado']"
+                    :keys="[
+                        'codigo',
+                        (item) => item.cliente_real?.usuario ? `${item.cliente_real.usuario.nombre} ${item.cliente_real.usuario.apellido}` : 'Cliente',
+                        (item) => `Bs. ${parseFloat(item.precio).toFixed(2)}`,
+                        (item) => item.fecha_fin_estimada || '-',
+                        'estado'
+                    ]"
+                    filename="reporte-pedidos"
+                    title="Reporte de Pedidos"
+                />
             </div>
 
             <!-- VISTA DE TARJETAS PARA EL CLIENTE -->
@@ -226,10 +341,19 @@ const currentUserRole = computed(() => page.props.auth.user?.rol_id);
                                 <span class="text-muted-foreground">Inversión Total:</span>
                                 <div class="text-lg font-extrabold text-amber-600 dark:text-amber-500">Bs. {{ parseFloat(pedido.precio).toFixed(2) }}</div>
                             </div>
-                            <button @click="openDetails(pedido)" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 px-4 py-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-750 transition-colors shadow-sm cursor-pointer whitespace-nowrap w-full sm:w-auto">
-                                <Eye class="h-4 w-4" />
-                                Ver Detalles
-                            </button>
+                            <div class="flex gap-2 w-full sm:w-auto justify-end">
+                                <button 
+                                    @click="openSelectCuotas(pedido)" 
+                                    class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+                                >
+                                    <CreditCard class="h-4 w-4" />
+                                    Pagar
+                                </button>
+                                <button @click="openDetails(pedido)" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 px-4 py-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-750 transition-colors shadow-sm cursor-pointer whitespace-nowrap">
+                                    <Eye class="h-4 w-4" />
+                                    Ver Detalles
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -374,6 +498,48 @@ const currentUserRole = computed(() => page.props.auth.user?.rol_id);
                             </table>
                         </div>
                     </div>
+
+                    <!-- Plan de Pagos / Cuotas -->
+                    <div v-if="selectedPedido.venta && selectedPedido.venta.pagos && selectedPedido.venta.pagos.length > 0" class="pt-4 border-t">
+                        <h4 class="font-bold text-lg mb-3">Plan de Pagos / Recibos</h4>
+                        <div class="rounded-md border border-sidebar-border bg-background shadow-sm overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead class="bg-muted/50 border-b">
+                                    <tr class="text-left font-medium text-muted-foreground">
+                                        <th class="p-3">Recibo</th>
+                                        <th class="p-3">Monto</th>
+                                        <th class="p-3">Vencimiento</th>
+                                        <th class="p-3">Estado</th>
+                                        <th v-if="currentUserRole === 2" class="p-3 text-right">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-sidebar-border">
+                                    <tr v-for="pago in selectedPedido.venta.pagos" :key="pago.id" class="hover:bg-muted/30 transition-colors">
+                                        <td class="p-3 font-semibold">#REC-{{ pago.id }}</td>
+                                        <td class="p-3 font-bold text-green-600 dark:text-green-500">Bs. {{ parseFloat(pago.subtotal).toFixed(2) }}</td>
+                                        <td class="p-3 text-muted-foreground">{{ new Date(pago.fecha_vencimiento).toLocaleDateString() }}</td>
+                                        <td class="p-3">
+                                            <span :class="`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${pago.estado.toLowerCase() === 'pagado' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400'}`">
+                                                {{ pago.estado }}
+                                            </span>
+                                        </td>
+                                        <td v-if="currentUserRole === 2" class="p-3 text-right">
+                                            <button 
+                                                v-if="pago.estado.toLowerCase() === 'pendiente'"
+                                                @click="abrirPagoDirecto(pago)"
+                                                class="inline-flex items-center justify-center gap-1 text-[11px] font-semibold text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded transition-colors shadow-sm cursor-pointer"
+                                            >
+                                                Pagar
+                                            </button>
+                                            <span v-else class="text-xs text-muted-foreground italic flex items-center justify-end gap-1 text-green-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Pagado
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Footer -->
@@ -381,6 +547,135 @@ const currentUserRole = computed(() => page.props.auth.user?.rol_id);
                     <button @click="closeModal" class="rounded-md bg-stone-900 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-stone-800 transition-colors dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200">
                         Cerrar
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE SELECCIÓN DE CUOTAS (CLIENTE) -->
+        <div v-if="isCuotasModalOpen && selectedPedidoForPago" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/50 p-4 backdrop-blur-sm">
+            <div class="relative w-full max-w-xl rounded-xl bg-background shadow-2xl border border-border flex flex-col">
+                <div class="flex items-center justify-between border-b border-border p-5">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500">
+                            <CreditCard class="h-5 w-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-foreground">Seleccionar Cuota a Pagar</h3>
+                            <p class="text-xs text-muted-foreground mt-0.5">Pedido {{ selectedPedidoForPago.codigo }}</p>
+                        </div>
+                    </div>
+                    <button @click="closeSelectCuotas" class="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground">
+                        <X class="h-5 w-5" />
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div v-if="!selectedPedidoForPago.venta || !selectedPedidoForPago.venta.pagos || selectedPedidoForPago.venta.pagos.length === 0" class="text-center py-6 text-muted-foreground italic">
+                        Este pedido no cuenta con un plan de pagos o cuotas configurado.
+                    </div>
+                    <div v-else class="space-y-3">
+                        <p class="text-xs text-muted-foreground font-semibold">Listado de Cuotas y Recibos del Pedido:</p>
+                        <div class="grid gap-3">
+                            <div v-for="pago in selectedPedidoForPago.venta.pagos" :key="pago.id" class="flex items-center justify-between p-4 border rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors">
+                                <div class="space-y-1">
+                                    <span class="text-xs font-bold text-stone-700 dark:text-stone-300">Recibo #REC-{{ pago.id }}</span>
+                                    <div class="text-lg font-extrabold text-green-600 dark:text-green-500">Bs. {{ parseFloat(pago.subtotal).toFixed(2) }}</div>
+                                    <span class="text-[10px] text-muted-foreground block">Vence el: {{ new Date(pago.fecha_vencimiento).toLocaleDateString() }}</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span :class="`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pago.estado.toLowerCase() === 'pagado' ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400'}`">
+                                        {{ pago.estado }}
+                                    </span>
+                                    <button 
+                                        v-if="pago.estado.toLowerCase() === 'pendiente'"
+                                        @click="abrirPagoDirecto(pago)" 
+                                        class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors shadow-sm cursor-pointer"
+                                    >
+                                        <QrCode class="w-4 h-4" />
+                                        Pagar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-border p-4 bg-muted/20 flex justify-end">
+                    <button @click="closeSelectCuotas" class="rounded-md bg-stone-900 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-stone-800 transition-colors dark:bg-stone-100 dark:text-stone-900 dark:hover:bg-stone-200">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE PROCESAMIENTO DE PAGO FÁCIL (QR) -->
+        <div v-if="showPagoModal" class="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-card text-card-foreground rounded-xl border border-border shadow-2xl w-full max-w-md p-6 relative">
+                <button @click="cerrarModalPago" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+                    <X class="w-5 h-5" />
+                </button>
+                <div class="flex items-center gap-3 border-b pb-4 mb-4">
+                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <CreditCard class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold">Pasarela Pago Fácil</h2>
+                        <p class="text-xs text-muted-foreground">Procesa tu pago de manera segura.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="text-sm">
+                        Monto a cancelar: <span class="font-bold text-green-600 dark:text-green-500">Bs. {{ pagoSeleccionado ? parseFloat(pagoSeleccionado.subtotal).toFixed(2) : '0.00' }}</span>
+                    </div>
+                    <h3 class="text-md font-medium leading-6 text-foreground">
+                        {{ qrImageBase64 ? 'Escanea el Código QR' : 'Opciones de Pago' }}
+                    </h3>
+                    <div class="text-xs text-muted-foreground space-y-4">
+                        <p v-if="!qrImageBase64">
+                            Estás a punto de iniciar el pago para la cuota
+                            <strong class="text-foreground">Recibo #{{ pagoSeleccionado?.id }}</strong>.
+                            Confirma el método de pago a continuación.
+                        </p>
+
+                        <!-- Mostrar QR -->
+                        <div v-if="qrImageBase64" class="flex flex-col items-center justify-center p-4 border rounded-lg bg-white">
+                            <img :src="'data:image/png;base64,' + qrImageBase64" alt="Código QR de Pago" class="w-64 h-64 object-contain shadow-sm border p-2 mb-4" />
+                            <p class="text-center font-medium text-blue-700 text-sm">
+                                Escanea este código QR con la aplicación móvil de tu banco.
+                            </p>
+                            <p class="text-[10px] text-center mt-2 text-gray-500">
+                                Una vez completado el pago, tu sistema se actualizará automáticamente.
+                            </p>
+                        </div>
+
+                        <!-- Formulario de Selección -->
+                        <form v-else @submit.prevent="procesarPagoFacil" class="space-y-4">
+                            <div class="grid gap-2">
+                                <label class="text-xs font-semibold">Método de Pago Preferido</label>
+                                <select v-model="pagoFacilForm.metodo" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                    <option value="QR">Pago QR Simple</option>
+                                    <option value="Tarjeta">Tarjeta de Crédito / Débito</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-end gap-3 pt-4">
+                                <button type="button" @click="cerrarModalPago" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-xs font-medium shadow-sm hover:bg-accent transition-colors">
+                                    Cancelar
+                                </button>
+                                <button type="submit" :disabled="isProcessingPagoFacil" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-xs font-medium text-white hover:bg-blue-750 transition-colors">
+                                    <LoaderCircle v-if="isProcessingPagoFacil" class="mr-2 h-4 w-4 animate-spin" />
+                                    {{ isProcessingPagoFacil ? 'Generando...' : 'Generar ' + pagoFacilForm.metodo }}
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Botón cerrar con QR activo -->
+                        <div v-if="qrImageBase64" class="flex justify-center pt-4">
+                            <button type="button" @click="cerrarModalPago" class="inline-flex items-center justify-center rounded-md border border-input bg-background px-6 py-2 text-xs font-medium shadow-sm hover:bg-accent transition-colors">
+                                Cerrar y Esperar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

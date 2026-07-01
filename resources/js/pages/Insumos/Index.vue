@@ -6,6 +6,7 @@ import { ref, watch } from 'vue';
 import { RefreshCw, Edit, Trash2 } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Proveedor {
     id: number;
@@ -108,6 +109,13 @@ const deleteInsumo = (id: number) => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="insumos.data"
+                    :headers="['ID', 'Nombre Insumo', 'Proveedor']"
+                    :keys="['id', 'nombre', (item) => item.proveedor?.nombre_empresa || 'Sin Proveedor']"
+                    filename="reporte-insumos"
+                    title="Reporte de Insumos"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">

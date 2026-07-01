@@ -7,6 +7,7 @@ import axios from 'axios';
 import { RefreshCw, QrCode, CreditCard, Banknote, LoaderCircle, X } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     nombre: string;
@@ -26,8 +27,19 @@ interface Pedido {
     cotizacion: Cotizacion | null;
 }
 
+interface PagoInfo {
+    id: number;
+    subtotal: string;
+    fecha_vencimiento: string;
+    estado: string;
+}
+
 interface Venta {
+    id: number;
+    codigo: string;
+    tipo: string;
     pedido: Pedido;
+    pagos?: PagoInfo[];
 }
 
 interface Pago {
@@ -206,6 +218,19 @@ const cobrarEfectivo = (pago: Pago) => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="pagos.data"
+                    :headers="['Código Venta', 'Cliente', 'Monto', 'Vencimiento', 'Estado']"
+                    :keys="[
+                        (item) => item.venta?.codigo,
+                        (item) => item.venta?.pedido?.cliente_real?.usuario ? `${item.venta.pedido.cliente_real.usuario.nombre} ${item.venta.pedido.cliente_real.usuario.apellido}` : (item.venta?.pedido?.cotizacion?.cliente?.usuario ? `${item.venta.pedido.cotizacion.cliente.usuario.nombre} ${item.venta.pedido.cotizacion.cliente.usuario.apellido}` : 'Cliente'),
+                        (item) => `Bs. ${parseFloat(item.subtotal).toFixed(2)}`,
+                        'fecha_vencimiento',
+                        'estado'
+                    ]"
+                    filename="reporte-pagos"
+                    title="Reporte de Pagos y Cobros"
+                />
             </div>
 
             <!-- VISTA DE TARJETAS PARA EL CLIENTE -->
@@ -230,10 +255,52 @@ const cobrarEfectivo = (pago: Pago) => {
                         <!-- Cuerpo de la Tarjeta -->
                         <div class="p-5 space-y-3 flex-1">
                             <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1 sm:gap-4 text-xs">
-                                <span class="text-muted-foreground">Fecha de Vencimiento:</span>
+                                <span class="text-muted-foreground">Fecha de Pago:</span>
                                 <span class="font-medium text-stone-800 dark:text-stone-200">
                                     {{ new Date(pago.fecha_vencimiento).toLocaleDateString() }}
                                 </span>
+                            </div>
+
+                            <!-- Detalles de plan de pagos Contado vs Crédito -->
+                            <div class="pt-3 border-t border-stone-100 dark:border-stone-850 space-y-2 text-xs">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-muted-foreground">Modalidad de Pago:</span>
+                                    <span class="font-semibold text-stone-700 dark:text-stone-300">
+                                        {{ pago.venta?.tipo === 'Contado' ? 'Al Contado' : 'A Crédito (Cuotas)' }}
+                                    </span>
+                                </div>
+
+                                <div v-if="pago.venta?.tipo === 'Contado'" class="flex justify-between items-center text-green-600 dark:text-green-400 font-medium">
+                                    <span>Plan de Pago:</span>
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                        Pago Completado
+                                    </span>
+                                </div>
+                                <div v-else-if="pago.venta?.pagos" class="space-y-1.5 pt-1">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-muted-foreground">Cuotas Pagadas:</span>
+                                        <span class="font-bold text-green-600 dark:text-green-500">
+                                            {{ pago.venta.pagos.filter(p => p.estado.toLowerCase() === 'pagado').length }} de {{ pago.venta.pagos.length }}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-muted-foreground">Cuotas Pendientes:</span>
+                                        <span class="font-bold text-amber-600 dark:text-amber-500">
+                                            {{ pago.venta.pagos.filter(p => p.estado.toLowerCase() !== 'pagado').length }} de {{ pago.venta.pagos.length }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Breve desglose de las cuotas -->
+                                    <div class="mt-2 space-y-1 bg-stone-50 dark:bg-stone-900/50 p-2 rounded-lg border border-stone-100 dark:border-stone-850 max-h-24 overflow-y-auto">
+                                        <div v-for="cuota in pago.venta.pagos" :key="cuota.id" class="flex justify-between items-center text-[10px]">
+                                            <span class="text-muted-foreground">Recibo #REC-{{ cuota.id }}</span>
+                                            <span :class="`font-semibold ${cuota.estado.toLowerCase() === 'pagado' ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-500'}`">
+                                                {{ cuota.estado }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -244,13 +311,7 @@ const cobrarEfectivo = (pago: Pago) => {
                                 <div class="text-lg font-extrabold text-green-600 dark:text-green-500">Bs. {{ parseFloat(pago.subtotal).toFixed(2) }}</div>
                             </div>
                             
-                            <div v-if="pago.estado.toLowerCase() === 'pendiente'" class="w-full sm:w-auto">
-                                <button @click="abrirPagoFacil(pago)" class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100 px-4 py-2 rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap w-full sm:w-auto">
-                                    <QrCode class="w-4 h-4" />
-                                    Pagar Cuota
-                                </button>
-                            </div>
-                            <span v-else class="text-xs text-muted-foreground italic flex items-center gap-1">
+                            <span class="text-xs text-muted-foreground italic flex items-center gap-1">
                                 <span class="w-2 h-2 rounded-full bg-green-500"></span> Transacción Completada
                             </span>
                         </div>

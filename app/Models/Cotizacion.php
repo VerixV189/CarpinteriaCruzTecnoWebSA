@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\RegistraBitacora;
 
+/**
+ * @property int $id
+ * @property int $cliente_id
+ * @property string $estado
+ */
 class Cotizacion extends Model
 {
     use RegistraBitacora;

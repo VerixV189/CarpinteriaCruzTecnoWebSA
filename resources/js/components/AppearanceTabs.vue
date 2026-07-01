@@ -25,17 +25,25 @@ const themes = [
 
 const colorOptionsMap = {
     ninos: [
-        { value: 'color-ninos-rosa', label: 'Rosa', hex: '#ff007f' },
-        { value: 'color-ninos-celeste', label: 'Celeste', hex: '#00a8ff' },
-        { value: 'color-ninos-amarillo', label: 'Amarillo', hex: '#ffd200' },
-        { value: 'color-ninos-verde', label: 'Verde', hex: '#4cd137' }
+        { value: 'color-ninos-rosavioleta', label: 'Rosa Violeta', hex: '#e879f9' },
+        { value: 'color-ninos-moradoazul', label: 'Morado Azul', hex: '#a855f7' },
+        { value: 'color-ninos-celestemorado', label: 'Celeste Morado', hex: '#38bdf8' },
+        { value: 'color-ninos-amarillonaranja', label: 'Amarillo Naranja', hex: '#fbbf24' },
+        { value: 'color-ninos-turquesaverde', label: 'Turquesa Verde', hex: '#06b6d4' },
+        { value: 'color-ninos-celesteazul', label: 'Celeste Azul', hex: '#0ea5e9' },
+        { value: 'color-ninos-azulmarino', label: 'Azul Marino', hex: '#2563eb' },
+        { value: 'color-ninos-rojofucsia', label: 'Rojo Fucsia', hex: '#f43f5e' }
     ],
     jovenes: [
-        { value: 'color-jovenes-morado', label: 'Morado', hex: '#b39ddb' },
-        { value: 'color-jovenes-verde', label: 'Verde', hex: '#aed581' },
-        { value: 'color-jovenes-azul', label: 'Azul', hex: '#80deea' },
-        { value: 'color-jovenes-rosa', label: 'Rosa', hex: '#f48fb1' },
-        { value: 'color-jovenes-naranja', label: 'Naranja', hex: '#ffcc80' }
+        { value: 'color-jovenes-petroleo', label: 'Petróleo Profundo', hex: '#04474B' },
+        { value: 'color-jovenes-rosaceniza', label: 'Rosa Ceniza', hex: '#D3B9B9' },
+        { value: 'color-jovenes-mostaza', label: 'Mostaza', hex: '#E4981E' },
+        { value: 'color-jovenes-verdementa', label: 'Verde Menta', hex: '#DAE3D9' },
+        { value: 'color-jovenes-salmon', label: 'Salmón', hex: '#E28A85' },
+        { value: 'color-jovenes-azulgris', label: 'Azul Grisáceo', hex: '#739899' },
+        { value: 'color-jovenes-azulpizarra', label: 'Azul Pizarra', hex: '#36445D' },
+        { value: 'color-jovenes-arena', label: 'Arena', hex: '#DACCAF' },
+        { value: 'color-jovenes-turquesa', label: 'Turquesa Oscuro', hex: '#03627E' }
     ],
     adultos: [
         { value: 'color-adultos-caoba', label: 'Caoba', hex: '#78350f' },

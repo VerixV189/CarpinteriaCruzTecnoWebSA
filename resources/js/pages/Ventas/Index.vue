@@ -5,6 +5,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref, watch, computed } from 'vue';
 import { RefreshCw, Eye, X } from 'lucide-vue-next';
 import Pagination from '@/components/Pagination.vue';
+import ReportExportButton from '@/components/ReportExportButton.vue';
 
 interface Usuario {
     nombre: string;
@@ -139,6 +140,19 @@ const totalPagado = computed(() => {
                     <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
                     <span>Refrescar</span>
                 </button>
+                <ReportExportButton
+                    :data="ventas.data"
+                    :headers="['Código Venta', 'Cliente', 'Fecha Venta', 'Tipo', 'Total']"
+                    :keys="[
+                        'codigo',
+                        (item) => item.pedido?.cliente_real?.usuario ? `${item.pedido.cliente_real.usuario.nombre} ${item.pedido.cliente_real.usuario.apellido}` : (item.pedido?.cotizacion?.cliente?.usuario ? `${item.pedido.cotizacion.cliente.usuario.nombre} ${item.pedido.cotizacion.cliente.usuario.apellido}` : 'Cliente'),
+                        (item) => item.fecha_entregado || new Date(item.created_at).toLocaleDateString(),
+                        'tipo',
+                        (item) => `Bs. ${parseFloat(item.total_costo).toFixed(2)}`
+                    ]"
+                    filename="reporte-ventas"
+                    title="Reporte de Ventas"
+                />
             </div>
 
             <div class="rounded-md border border-sidebar-border bg-card text-card-foreground shadow">
